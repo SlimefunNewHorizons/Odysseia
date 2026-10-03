@@ -135,9 +135,36 @@
                 </property>
             </activation>
             <properties>
+                <!-- paper-api must match the MockBukkit fixtures: 1.21.11 lacks 26.x materials
+                     (e.g. CHISELED_CINNABAR) and ServerMock fails while loading tags. -->
+                <paper.version>26.2.build.111-stable</paper.version>
                 <mockbukkit.artifactId>mockbukkit-v26.2</mockbukkit.artifactId>
                 <mockbukkit.version>4.116.1</mockbukkit.version>
             </properties>
+            <build>
+                <plugins>
+                    <!-- MockBukkit v26.2 ships Java 25 bytecode. java.lang.foreign is final since 22,
+                         so the preview flag is dropped here (javac 25 rejects it with release 21). -->
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-compiler-plugin</artifactId>
+                        <configuration>
+                            <source>25</source>
+                            <target>25</target>
+                            <compilerArgs combine.self="override">
+                                <arg>-parameters</arg>
+                            </compilerArgs>
+                        </configuration>
+                    </plugin>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-surefire-plugin</artifactId>
+                        <configuration>
+                            <argLine combine.self="override"></argLine>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
         </profile>
     </profiles>
 
