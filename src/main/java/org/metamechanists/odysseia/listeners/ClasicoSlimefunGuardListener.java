@@ -99,7 +99,8 @@ public final class ClasicoSlimefunGuardListener implements Listener {
             } catch (ReflectiveOperationException ignored) {
             }
 
-            for (String bsClass : List.of(base + ".legacy.api.BlockStorage", base + ".api.BlockStorage")) {
+            for (String bsClass : List.of(base + ".legacy.api.BlockStorage", base + ".api.BlockStorage",
+                    "me.mrCookieSlime.Slimefun.api.BlockStorage")) {
                 try {
                     Class<?> storageClass = Class.forName(bsClass);
                     this.blockStorageHasBlockInfo = storageClass.getMethod("hasBlockInfo", Block.class);
