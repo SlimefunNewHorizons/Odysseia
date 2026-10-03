@@ -25,6 +25,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+import org.metamechanists.odysseia.util.SlimefunClasses;
 
 /** Non-destructive safety rules for the creative Slimefun laboratory. */
 public final class SandboxSafetyListener implements Listener {
@@ -59,7 +60,7 @@ public final class SandboxSafetyListener implements Listener {
         Method byItem = null;
         Method id = null;
         try {
-            Class<?> slimefunItem = Class.forName("com.github.drakescraft_labs.slimefun4.api.items.SlimefunItem");
+            Class<?> slimefunItem = SlimefunClasses.slimefunItem();
             byItem = slimefunItem.getMethod("getByItem", ItemStack.class);
             id = slimefunItem.getMethod("getId");
         } catch (ReflectiveOperationException error) {

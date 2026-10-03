@@ -11,6 +11,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.inventory.ItemStack;
 import org.metamechanists.odysseia.Odysseia;
+import org.metamechanists.odysseia.util.SlimefunClasses;
 
 import java.lang.reflect.Method;
 import java.util.Locale;
@@ -47,8 +48,8 @@ public final class SlimefunSpawnerLimitListener implements Listener {
         Method getId = null;
         Method checkId = null;
         try {
-            Class<?> slimefunItem = Class.forName("com.github.drakescraft_labs.slimefun4.api.items.SlimefunItem");
-            Class<?> blockStorage = Class.forName("com.github.drakescraft_labs.slimefun4.legacy.api.BlockStorage");
+            Class<?> slimefunItem = SlimefunClasses.slimefunItem();
+            Class<?> blockStorage = SlimefunClasses.blockStorage();
             byItem = slimefunItem.getMethod("getByItem", ItemStack.class);
             getId = slimefunItem.getMethod("getId");
             checkId = blockStorage.getMethod("checkID", Location.class);

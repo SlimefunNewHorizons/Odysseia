@@ -52,6 +52,7 @@ import org.metamechanists.odysseia.boss.skills.PolymorphSkill;
 import org.metamechanists.odysseia.boss.combat.BossCombatDirector;
 import org.metamechanists.odysseia.utils.WebhookSender;
 import org.metamechanists.odysseia.integrations.DiosesDrakesBossBridge;
+import org.metamechanists.odysseia.util.SlimefunClasses;
 
 import java.util.Map;
 import java.util.HashMap;
@@ -108,7 +109,7 @@ public class BossManager implements Listener {
         java.lang.reflect.Method getById = null;
         java.lang.reflect.Method getItem = null;
         try {
-            Class<?> slimefunItem = Class.forName("com.github.drakescraft_labs.slimefun4.api.items.SlimefunItem");
+            Class<?> slimefunItem = SlimefunClasses.slimefunItem();
             getById = slimefunItem.getMethod("getById", String.class);
             getItem = slimefunItem.getMethod("getItem");
         } catch (ReflectiveOperationException ignored) {

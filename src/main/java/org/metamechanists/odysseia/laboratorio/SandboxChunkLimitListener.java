@@ -13,6 +13,7 @@ import org.bukkit.plugin.java.JavaPlugin;
 import java.lang.reflect.Method;
 import java.util.Locale;
 import java.util.Set;
+import org.metamechanists.odysseia.util.SlimefunClasses;
 
 /**
  * Tope de bloques de Slimefun por chunk, solo dentro del laboratorio.
@@ -47,7 +48,7 @@ public final class SandboxChunkLimitListener implements Listener {
         Method locations = null;
         Method check = null;
         try {
-            Class<?> blockStorage = Class.forName("com.github.drakescraft_labs.slimefun4.legacy.api.BlockStorage");
+            Class<?> blockStorage = SlimefunClasses.blockStorage();
             locations = blockStorage.getMethod("getLocations", Chunk.class);
             check = blockStorage.getMethod("checkID", Location.class);
         } catch (ReflectiveOperationException error) {
@@ -92,7 +93,7 @@ public final class SandboxChunkLimitListener implements Listener {
      */
     private boolean esItemSlimefun(BlockPlaceEvent event) {
         try {
-            Class<?> slimefunItem = Class.forName("com.github.drakescraft_labs.slimefun4.api.items.SlimefunItem");
+            Class<?> slimefunItem = SlimefunClasses.slimefunItem();
             Object item = slimefunItem.getMethod("getByItem", org.bukkit.inventory.ItemStack.class)
                     .invoke(null, event.getItemInHand());
             return item != null;

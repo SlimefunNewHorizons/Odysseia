@@ -14,6 +14,7 @@ import org.bukkit.plugin.RegisteredServiceProvider;
 import org.jetbrains.annotations.NotNull;
 import org.metamechanists.odysseia.Odysseia;
 import org.metamechanists.odysseia.economy.CommerceRateLimiter;
+import org.metamechanists.odysseia.util.SlimefunClasses;
 
 import java.lang.reflect.Method;
 import java.util.ArrayList;
@@ -48,7 +49,7 @@ public final class SellInventoryCommand implements CommandExecutor {
 
     private void initReflection() {
         try {
-            Class<?> sfItemClass = Class.forName("com.github.drakescraft_labs.slimefun4.api.items.SlimefunItem");
+            Class<?> sfItemClass = SlimefunClasses.slimefunItem();
             this.slimefunGetByItemMethod = sfItemClass.getMethod("getByItem", ItemStack.class);
             this.reflectionInitialized = true;
         } catch (Throwable ignored) {

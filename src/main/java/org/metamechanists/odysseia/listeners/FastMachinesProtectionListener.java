@@ -10,6 +10,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.metamechanists.odysseia.Odysseia;
+import org.metamechanists.odysseia.util.SlimefunClasses;
 
 import java.lang.reflect.Method;
 import java.util.UUID;
@@ -44,22 +45,22 @@ public final class FastMachinesProtectionListener implements Listener {
         Method isMember = null;
 
         try {
-            Class<?> blockStorage = Class.forName("com.github.drakescraft_labs.slimefun4.legacy.api.BlockStorage");
-            Class<?> slimefunItem = Class.forName("com.github.drakescraft_labs.slimefun4.api.items.SlimefunItem");
+            Class<?> blockStorage = SlimefunClasses.blockStorage();
+            Class<?> slimefunItem = SlimefunClasses.slimefunItem();
             Class<?> psRegion = Class.forName("dev.espi.protectionstones.PSRegion");
 
             storageCheck = blockStorage.getMethod("checkID", Location.class);
             itemById = slimefunItem.getMethod("getById", String.class);
             itemAddon = slimefunItem.getMethod("getAddon");
-            addonName = Class.forName("com.github.drakescraft_labs.slimefun4.api.SlimefunAddon").getMethod("getName");
+            addonName = SlimefunClasses.slimefunAddon().getMethod("getName");
             fromLocation = psRegion.getMethod("fromLocation", Location.class);
             isOwner = psRegion.getMethod("isOwner", UUID.class);
             isMember = psRegion.getMethod("isMember", UUID.class);
         } catch (ReflectiveOperationException exception) {
-            // ProtectionStones es opcional en staging. La integración se conserva inactiva
-            // hasta que exista, sin una traza de ClassNotFoundException en cada arranque.
-            plugin.getLogger().warning("[FastMachines] La integración de protecciones no está disponible ("
-                    + exception.getClass().getSimpleName() + "); se reintentará al interactuar.");
+            // ProtectionStones es opcional en staging. La integración queda inactiva hasta el
+            // próximo arranque, sin una traza de ClassNotFoundException en cada inicio.
+            plugin.getLogger().info("[FastMachines] Protección de Fast Machines inactiva: falta "
+                    + exception.getMessage() + ".");
         }
 
         this.blockStorageCheckId = storageCheck;

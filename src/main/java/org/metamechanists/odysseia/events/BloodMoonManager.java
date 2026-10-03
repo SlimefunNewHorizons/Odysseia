@@ -25,6 +25,7 @@ import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.projectiles.ProjectileSource;
 import org.bukkit.scheduler.BukkitTask;
 import org.metamechanists.odysseia.Odysseia;
+import org.metamechanists.odysseia.util.SlimefunClasses;
 
 import java.lang.reflect.Method;
 import java.util.ArrayList;
@@ -98,7 +99,7 @@ public final class BloodMoonManager implements Listener {
         Method getById = null;
         Method getItem = null;
         try {
-            Class<?> type = Class.forName("com.github.drakescraft_labs.slimefun4.api.items.SlimefunItem");
+            Class<?> type = SlimefunClasses.slimefunItem();
             getById = type.getMethod("getById", String.class);
             getItem = type.getMethod("getItem");
         } catch (ReflectiveOperationException ignored) {
