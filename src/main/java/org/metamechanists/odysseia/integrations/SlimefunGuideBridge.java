@@ -30,8 +30,8 @@ public final class SlimefunGuideBridge {
         this.expiryKey = new NamespacedKey(plugin, "sfmaster_guide_expiry");
         this.sfMasterItemKey = new NamespacedKey(plugin, "sfmaster_item");
         try {
-            Class<?> guideMode = Class.forName("com.github.drakescraft_labs.slimefun4.core.guide.SlimefunGuideMode");
-            Class<?> guide = Class.forName("com.github.drakescraft_labs.slimefun4.core.guide.SlimefunGuide");
+            Class<?> guideMode = Class.forName("io.github.thebusybiscuit.slimefun4.core.guide.SlimefunGuideMode");
+            Class<?> guide = Class.forName("io.github.thebusybiscuit.slimefun4.core.guide.SlimefunGuide");
             this.cheatMode = Enum.valueOf(guideMode.asSubclass(Enum.class), "CHEAT_MODE");
             this.getGuideItem = guide.getMethod("getItem", guideMode);
             try {
