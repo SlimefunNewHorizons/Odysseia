@@ -30,8 +30,14 @@ public final class ArmorEffectsListener implements Listener {
             "speed", "resistance", "health-boost", "saturation", "fire-resistance",
             "jump-boost", "regeneration", "strength", "night-vision");
 
+    static final Set<String> AURA_RANKS = Set.of(
+            "titancaos", "titancronos", "titanhiperion", "titanoceanus", "titanjapeto",
+            "poseidon", "anubis", "thor", "zeus", "atenea", "afrodita", "artemisa",
+            "hefesto", "hermes", "hestia", "hercules", "oldschool");
+
     private final JavaPlugin plugin;
     private final Map<UUID, Map<PotionEffectType, PotionEffect>> appliedEffects = new HashMap<>();
+    private final Set<String> warnedMissingRanks = new HashSet<>();
 
     public ArmorEffectsListener(Odysseia plugin) {
         this((JavaPlugin) plugin);
@@ -162,7 +168,10 @@ public final class ArmorEffectsListener implements Listener {
     private void addConfiguredEffects(Set<PotionEffect> effects, String rank) {
         ConfigurationSection section = plugin.getConfig().getConfigurationSection("armor-effects." + rank);
         if (section == null) {
-            plugin.getLogger().warning("No existe la configuración de aura para el rango " + rank);
+            // The refresh task runs every few seconds; report each missing rank only once.
+            if (warnedMissingRanks.add(rank)) {
+                plugin.getLogger().warning("No existe la configuración de aura para el rango " + rank);
+            }
             return;
         }
         configuredEffectLevels(section).forEach((key, level) -> effects.add(getEffect(effectType(key), level)));
