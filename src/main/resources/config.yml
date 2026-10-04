@@ -85,6 +85,65 @@ armor-effects:
     strength: 2
     resistance: 1
     saturation: true
+  atenea:
+    speed: 3
+    health-boost: 3
+    resistance: 2
+    saturation: true
+  thor:
+    speed: 3
+    health-boost: 4
+    strength: 2
+    resistance: 2
+    saturation: true
+  anubis:
+    speed: 3
+    health-boost: 4
+    strength: 2
+    resistance: 2
+    night-vision: true
+    saturation: true
+  poseidon:
+    speed: 4
+    health-boost: 4
+    strength: 2
+    resistance: 2
+    regeneration: 1
+    saturation: true
+  titanjapeto:
+    speed: 3
+    health-boost: 5
+    strength: 3
+    resistance: 2
+    saturation: true
+  titanoceanus:
+    speed: 4
+    health-boost: 5
+    strength: 3
+    resistance: 2
+    saturation: true
+  titanhiperion:
+    speed: 4
+    health-boost: 5
+    strength: 3
+    resistance: 3
+    fire-resistance: true
+    saturation: true
+  titancronos:
+    speed: 4
+    health-boost: 6
+    strength: 3
+    resistance: 3
+    regeneration: 1
+    saturation: true
+  titancaos:
+    speed: 4
+    health-boost: 6
+    strength: 4
+    resistance: 3
+    regeneration: 2
+    fire-resistance: true
+    saturation: true
   oldschool:
     speed: 3
     health-boost: 2
