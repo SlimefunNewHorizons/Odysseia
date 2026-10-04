@@ -48,4 +48,20 @@ class ArmorEffectsConfigTest {
                     "armor-effects." + rank + " no otorga ningun efecto");
         }
     }
+
+    @Test
+    void configEnDiscoSinRangoUsaLosDefaultsDelJar() throws Exception {
+        YamlConfiguration defaults = new YamlConfiguration();
+        defaults.load(new File("src/main/resources/config.yml"));
+        // Un config.yml antiguo en el servidor no trae la seccion; Bukkit cuelga el del jar como defaults.
+        YamlConfiguration enDisco = new YamlConfiguration();
+        enDisco.set("armor-effects.zeus.speed", 4);
+        enDisco.setDefaults(defaults);
+
+        ConfigurationSection section = enDisco.getConfigurationSection("armor-effects.titancaos");
+        assertNotNull(section);
+        assertEquals(defaults.getInt("armor-effects.titancaos.strength"),
+                ArmorEffectsListener.configuredEffectLevels(section).get("strength"));
+        assertEquals(1, ArmorEffectsListener.configuredEffectLevels(section).get("saturation"));
+    }
 }

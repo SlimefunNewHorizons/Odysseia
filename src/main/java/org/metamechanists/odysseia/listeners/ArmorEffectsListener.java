@@ -181,7 +181,10 @@ public final class ArmorEffectsListener implements Listener {
         Map<String, Integer> effects = new HashMap<>();
         CONFIGURED_EFFECTS.forEach(key -> {
             Object value = section.get(key);
-            int level = value instanceof Boolean enabled ? (enabled ? 1 : 0) : section.getInt(key, 0);
+            // Read the level from the resolved value: getInt(key, 0) would skip the jar defaults
+            // that cover ranks missing from an older config.yml on disk.
+            int level = value instanceof Boolean enabled ? (enabled ? 1 : 0)
+                    : value instanceof Number number ? number.intValue() : 0;
             if (level > 0) effects.put(key, level);
         });
         return effects;
