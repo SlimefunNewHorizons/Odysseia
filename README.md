@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src="https://raw.githubusercontent.com/DrakesCraft-Labs/Odysseia/main/banner.svg" alt="Odysseia" width="100%">
+<img src="https://raw.githubusercontent.com/SlimefunNewHorizons/Odysseia/main/banner.svg" alt="Odysseia" width="100%">
 
 # ✦ Odysseia Core Engine ✦
 
@@ -12,14 +12,14 @@
 [![Rust](https://img.shields.io/badge/Rust-2021_Workspace-DEA584?logo=rust&logoColor=white)](https://www.rust-lang.org/)
 [![License](https://img.shields.io/badge/License-GPL--3.0-blue)](./LICENSE)
 [![Platform](https://img.shields.io/badge/Network-DrakesCraft_Production-00E5FF)](https://web.drakescraft.cl)
-[![RepoRanker](https://reporanker.com/badge/DrakesCraft-Labs/Odysseia)](https://reporanker.com/repos/DrakesCraft-Labs/Odysseia)
+[![RepoRanker](https://reporanker.com/badge/SlimefunNewHorizons/Odysseia)](https://reporanker.com/repos/SlimefunNewHorizons/Odysseia)
 
 **A high-performance Paper/Purpur 1.21.11 production core that centralizes transactional store fulfillment, cross-modality inventory isolation, multi-tier kit progression, automated server maintenance windows, anti-exploit rate limiters, and horror night environmental events.**
 
 [🌐 Official Portal](https://web.drakescraft.cl) ·
 [📖 Command Guide](https://web.drakescraft.cl/guia-comandos.html) ·
 [🛒 Store Catalog](https://web.drakescraft.cl/store.html) ·
-[🏛️ Ecosystem Repositories](https://github.com/DrakesCraft-Labs)
+[🏛️ Ecosystem Repositories](https://github.com/SlimefunNewHorizons)
 
 </div>
 
@@ -79,9 +79,9 @@ Odysseia operates as the foundational core of a decoupled 4-pillar architectural
 | Plugin Repository | Role & Responsibilities |
 |---|---|
 | **`Odysseia`** *(This Repo)* | Central execution plane: Tebex gateway, kit deliveries, cross-modality security, `/restart30`, cosmetics, and admin tools. |
-| **[`DiosesDrakes`](https://github.com/DrakesCraft-Labs/DiosesDrakes)** | Divine pantheon progression (Greek, Norse, Celtic, Egyptian, Hindu), favor mechanics, and public Convergence altars. |
-| **[`DrakesBosses`](https://github.com/DrakesCraft-Labs/DrakesBosses)** | Isolated multi-phase boss arenas in `drakes_bosses`, Dragmas economy entry fees, and secure reward mailbox (`/buzon`). |
-| **[`ArcanaDrakes`](https://github.com/DrakesCraft-Labs/ArcanaDrakes)** | Elemental magic paths (Fire, Water, Earth, Air, Ice, Lightning), meditation shrines, spell grimoire, and deity tuning. |
+| **[`DiosesDrakes`](https://github.com/SlimefunNewHorizons/DiosesDrakes)** | Divine pantheon progression (Greek, Norse, Celtic, Egyptian, Hindu), favor mechanics, and public Convergence altars. |
+| **[`DrakesBosses`](https://github.com/SlimefunNewHorizons/DrakesBosses)** | Isolated multi-phase boss arenas in `drakes_bosses`, Dragmas economy entry fees, and secure reward mailbox (`/buzon`). |
+| **[`ArcanaDrakes`](https://github.com/SlimefunNewHorizons/ArcanaDrakes)** | Elemental magic paths (Fire, Water, Earth, Air, Ice, Lightning), meditation shrines, spell grimoire, and deity tuning. |
 
 ---
 
@@ -188,7 +188,7 @@ Odysseia-Rust/
 
 ```bash
 # 1. Clone repository
-git clone https://github.com/DrakesCraft-Labs/Odysseia.git
+git clone https://github.com/SlimefunNewHorizons/Odysseia.git
 cd Odysseia
 
 # 2. Build Java Bukkit Plugin JAR
@@ -238,7 +238,7 @@ between unrelated servers, publish it, or delete it while issued cheques are sti
 
 ## 📄 License & Upstream Attribution
 
-This project is a sovereign fork maintained by [**JackStar6677-1**](https://github.com/JackStar6677-1) under [**DrakesCraft Labs**](https://github.com/DrakesCraft-Labs).
+This project is a sovereign fork maintained by [**JackStar6677-1**](https://github.com/JackStar6677-1) under [**DrakesCraft Labs**](https://github.com/SlimefunNewHorizons).
 
 - **Original Project:** Created by the upstream authors and the open-source community.
 - **DrakesCraft Optimizations:** Modernized for Paper/Purpur 1.21.11+, Java 21, high concurrency, asynchronous safety, and exploit/duplication prevention.
