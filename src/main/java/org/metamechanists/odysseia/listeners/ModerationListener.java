@@ -203,7 +203,8 @@ public final class ModerationListener implements Listener {
         plugin.getLogger().info("[Moderation] " + org.bukkit.ChatColor.stripColor(mensaje));
     }
 
-    private String moderationWebhook() {
+    // Package-visible for the focused no-webhook regression test; callers remain internal listeners.
+    String moderationWebhook() {
         String url = plugin.getConfig().getString("discord.webhook-moderation-url", "");
         if (!isValidModerationWebhook(url)) {
             if (invalidWebhookWarningLogged.compareAndSet(false, true)) {
