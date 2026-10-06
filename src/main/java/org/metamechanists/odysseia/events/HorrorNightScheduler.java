@@ -309,12 +309,7 @@ public class HorrorNightScheduler implements Listener {
     /** Intenta obtener un ItemStack de Slimefun por su ID con fallback multi-paquete. */
     private org.bukkit.inventory.ItemStack getSlimefunItem(String id) {
         try {
-            Class<?> sfClass;
-            try {
-                sfClass = Class.forName("io.github.thebusybiscuit.slimefun4.api.items.SlimefunItem");
-            } catch (ClassNotFoundException e) {
-                sfClass = Class.forName("com.github.drakescraft_labs.slimefun4.api.items.SlimefunItem");
-            }
+            Class<?> sfClass = org.metamechanists.odysseia.util.SlimefunClasses.slimefunItem();
             java.lang.reflect.Method getById = sfClass.getMethod("getById", String.class);
             java.lang.reflect.Method getItem = sfClass.getMethod("getItem");
             Object sfObj = getById.invoke(null, id);
