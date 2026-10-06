@@ -37,6 +37,7 @@ import org.bukkit.plugin.Plugin;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.metamechanists.odysseia.integrations.SlimefunGuideBridge;
 import org.metamechanists.odysseia.integrations.SFMasterPassExpiry;
+import org.metamechanists.odysseia.util.SlimefunClasses;
 
 import java.io.File;
 import java.io.IOException;
@@ -113,7 +114,7 @@ public class SFMasterWatcherListener implements Listener {
 
     private Method findSlimefunGetByItem() {
         try {
-            Class<?> slimefunItem = Class.forName("io.github.thebusybiscuit.slimefun4.api.items.SlimefunItem");
+            Class<?> slimefunItem = SlimefunClasses.slimefunItem();
             return slimefunItem.getMethod("getByItem", ItemStack.class);
         } catch (ReflectiveOperationException exception) {
             plugin.getLogger().severe("No se pudo enlazar la API de Slimefun para proteger SFMaster: " + exception.getMessage());

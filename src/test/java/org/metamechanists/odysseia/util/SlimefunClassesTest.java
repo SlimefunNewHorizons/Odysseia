@@ -40,4 +40,22 @@ class SlimefunClassesTest {
             assertTrue(candidates.stream().anyMatch(name -> name.startsWith("com.github.drakescraft_labs.")));
         }
     }
+
+    @Test
+    void laGuiaSaltaPaquetesIncompletosYTomaAmbasClasesDelMismo() throws ClassNotFoundException {
+        // Como en Dallas: el primer paquete solo tiene una de las dos clases.
+        // java.sql tiene Date pero no List: no se debe mezclar java.sql.Date con java.util.List.
+        Class<?>[] pair = SlimefunClasses.firstPair(List.of("java.sql", "java.util"), "Date", "List");
+        assertSame(java.util.Date.class, pair[0]);
+        assertSame(List.class, pair[1]);
+        pair = SlimefunClasses.firstPair(List.of("java.lang", "java.util"), "Map", "List");
+        assertSame(java.util.Map.class, pair[0]);
+        assertSame(List.class, pair[1]);
+    }
+
+    @Test
+    void laGuiaTieneVarianteUniversalYPropia() {
+        assertTrue(SlimefunClasses.GUIDE_BASES.get(0).startsWith("io.github.thebusybiscuit."));
+        assertTrue(SlimefunClasses.GUIDE_BASES.stream().anyMatch(name -> name.startsWith("com.github.drakescraft_labs.")));
+    }
 }
