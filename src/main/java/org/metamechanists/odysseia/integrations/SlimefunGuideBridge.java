@@ -7,6 +7,7 @@ import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.plugin.Plugin;
+import org.metamechanists.odysseia.util.SlimefunClasses;
 
 import java.lang.reflect.Method;
 import java.util.Optional;
@@ -30,8 +31,9 @@ public final class SlimefunGuideBridge {
         this.expiryKey = new NamespacedKey(plugin, "sfmaster_guide_expiry");
         this.sfMasterItemKey = new NamespacedKey(plugin, "sfmaster_item");
         try {
-            Class<?> guideMode = Class.forName("io.github.thebusybiscuit.slimefun4.core.guide.SlimefunGuideMode");
-            Class<?> guide = Class.forName("io.github.thebusybiscuit.slimefun4.core.guide.SlimefunGuide");
+            Class<?>[] guideClasses = SlimefunClasses.guide();
+            Class<?> guideMode = guideClasses[0];
+            Class<?> guide = guideClasses[1];
             this.cheatMode = Enum.valueOf(guideMode.asSubclass(Enum.class), "CHEAT_MODE");
             this.getGuideItem = guide.getMethod("getItem", guideMode);
             try {
