@@ -11,6 +11,7 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
+import org.metamechanists.odysseia.util.SlimefunClasses;
 
 import java.util.Locale;
 import java.util.Map;
@@ -62,7 +63,7 @@ public final class CustomContentResolver {
             slimefunChecked = true;
             if (Bukkit.getPluginManager().getPlugin("Slimefun") != null) {
                 try {
-                    slimefunItemClass = Class.forName("io.github.thebusybiscuit.slimefun4.api.items.SlimefunItem");
+                    slimefunItemClass = SlimefunClasses.slimefunItem();
                 } catch (ClassNotFoundException error) {
                     slimefunItemClass = null;
                 }
