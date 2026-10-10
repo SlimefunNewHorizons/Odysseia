@@ -195,6 +195,9 @@ public class HorrorFogCommand implements CommandExecutor, TabCompleter {
                     .filter(s -> s.startsWith(args[0].toLowerCase(Locale.ROOT))).toList();
         }
         if (args.length == 2) {
+            if (!sender.hasPermission("odysseia.horrorfog") && !sender.hasPermission("drakes.staff")) {
+                return List.of();
+            }
             List<String> list = new ArrayList<>(List.of("all"));
             for (Player p : Bukkit.getOnlinePlayers()) {
                 list.add(p.getName());
