@@ -135,10 +135,9 @@ commands:
     # /tienda y /shop se conservan como aliases de compatibilidad.
     usage: /menu [kits]
   niebla:
-    description: Activa o desactiva la niebla ultra densa de terror.
+    description: Alterna o ajusta la niebla atmosférica de Halloween y terror.
     aliases: [horrorfog, fog]
-    permission: odysseia.horrorfog
-    usage: /niebla <on|off|toggle> [jugador|all]
+    usage: /niebla [on|off|toggle]
   mountdragon:
     description: Abre el selector y pilota los dragones privados de JackStar6677 y Kika.
     aliases: [dragon, dragonmontar]

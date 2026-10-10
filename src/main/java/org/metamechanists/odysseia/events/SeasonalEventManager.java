@@ -14,6 +14,8 @@ import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.EntityDeathEvent;
 import org.bukkit.event.player.PlayerBedLeaveEvent;
 import org.bukkit.event.player.PlayerItemConsumeEvent;
+import org.bukkit.event.player.PlayerJoinEvent;
+import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.event.world.TimeSkipEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
@@ -61,6 +63,7 @@ public class SeasonalEventManager implements Listener {
     private long lastBirthdayBroadcast = 0;
 
     private static final NamespacedKey HALLOWEEN_TREAT_KEY = new NamespacedKey("odysseia", "halloween_treat");
+    private static final NamespacedKey ORANGE_FOG_OPT_OUT_KEY = new NamespacedKey("odysseia", "orange_fog_disabled");
     private final Set<UUID> orangeFogDisabled = java.util.concurrent.ConcurrentHashMap.newKeySet();
     private final java.util.concurrent.ConcurrentHashMap<String, Long> midnightBellChimedPerWorld = new java.util.concurrent.ConcurrentHashMap<>();
 
@@ -132,8 +135,12 @@ public class SeasonalEventManager implements Listener {
                     if (!player.isOnline() || player.isDead() || player.getGameMode() == GameMode.SPECTATOR) continue;
                     if (orangeFogDisabled.contains(player.getUniqueId())) continue;
 
-                    // Si es de noche o tormenta, contraer suavemente el plano de niebla (DARKNESS amp 0, ambient)
-                    if (isNightOrStorm) {
+                    // Si es de noche o tormenta, contraer suavemente el plano de niebla (DARKNESS amp 0, ambient).
+                    // En modalidades de islas (SkyBlock y OneBlock), se omite el efecto de ceguera DARKNESS
+                    // para preservar la visión de los límites de bloques sobre el vacío.
+                    String worldName = world.getName().toLowerCase(Locale.ROOT);
+                    boolean isIslandWorld = worldName.contains("bskyblock") || worldName.contains("oneblock");
+                    if (isNightOrStorm && !isIslandWorld) {
                         player.addPotionEffect(new PotionEffect(PotionEffectType.DARKNESS, 45, 0, true, false, false));
                     }
 
@@ -247,6 +254,25 @@ public class SeasonalEventManager implements Listener {
         player.sendMessage(ChatColor.translateAlternateColorCodes('&',
                 "&8[&6🎃&8] &eHas descansado en tu cama. El insomnio se disipa bajo la bruma otoñal de Halloween."));
         player.playSound(player.getLocation(), Sound.BLOCK_AMETHYST_BLOCK_CHIME, 1.0f, 1.2f);
+    }
+
+    /**
+     * Sincroniza la preferencia persistente de niebla de Halloween del jugador al conectar.
+     */
+    @EventHandler(priority = EventPriority.MONITOR)
+    public void onPlayerJoin(PlayerJoinEvent event) {
+        Player player = event.getPlayer();
+        if (player.getPersistentDataContainer().has(ORANGE_FOG_OPT_OUT_KEY, PersistentDataType.BYTE)) {
+            orangeFogDisabled.add(player.getUniqueId());
+        }
+    }
+
+    /**
+     * Limpia la memoria de sesión al desconectarse el jugador.
+     */
+    @EventHandler(priority = EventPriority.MONITOR)
+    public void onPlayerQuit(PlayerQuitEvent event) {
+        orangeFogDisabled.remove(event.getPlayer().getUniqueId());
     }
 
     /**
@@ -523,11 +549,7 @@ public class SeasonalEventManager implements Listener {
     }
 
     public void toggleOrangeFog(UUID uuid) {
-        if (orangeFogDisabled.contains(uuid)) {
-            orangeFogDisabled.remove(uuid);
-        } else {
-            orangeFogDisabled.add(uuid);
-        }
+        setOrangeFogDisabled(uuid, !orangeFogDisabled.contains(uuid));
     }
 
     public void setOrangeFogDisabled(UUID uuid, boolean disabled) {
@@ -535,6 +557,16 @@ public class SeasonalEventManager implements Listener {
             orangeFogDisabled.add(uuid);
         } else {
             orangeFogDisabled.remove(uuid);
+        }
+        Player player = Bukkit.getPlayer(uuid);
+        if (player != null && player.isOnline()) {
+            if (disabled) {
+                player.getPersistentDataContainer().set(ORANGE_FOG_OPT_OUT_KEY, PersistentDataType.BYTE, (byte) 1);
+                player.removePotionEffect(PotionEffectType.DARKNESS);
+                player.removePotionEffect(PotionEffectType.BLINDNESS);
+            } else {
+                player.getPersistentDataContainer().remove(ORANGE_FOG_OPT_OUT_KEY);
+            }
         }
     }
 
