@@ -78,7 +78,8 @@ public class DiscordTranslationBridgeService {
     public void registerDiscordSRV() {
         if (subscribed) return;
         if (!Bukkit.getPluginManager().isPluginEnabled("DiscordSRV")) {
-            log.warning("[Odysseia] DiscordSRV no está habilitado - puente de traducción deshabilitado.");
+            // DiscordSRV es softdepend: su ausencia es una configuración válida, no una avería.
+            log.info("[Odysseia] DiscordSRV no está instalado - puente de traducción inactivo.");
             return;
         }
         try {
