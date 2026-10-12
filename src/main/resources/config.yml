@@ -224,6 +224,11 @@ starter-kit:
   por-modalidad:
     skyblock: inicial-skyblock
     oneblock: inicial-oneblock
+welcome-menu:
+  # Dialogo nativo (datapack DrakesCraft: welcome_es / welcome_en) que se abre solo a los
+  # jugadores nuevos al recibir el kit inicial. /bienvenida lo vuelve a abrir.
+  enabled: true
+  delay-ticks: 40
 chatgames:
   # 2026-09-16: desactivado; el plugin ChatGames es el unico motor de juegos de chat (evita juegos y premios superpuestos).
   enabled: false

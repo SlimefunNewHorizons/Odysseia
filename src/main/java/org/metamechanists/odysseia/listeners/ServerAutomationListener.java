@@ -213,6 +213,11 @@ public final class ServerAutomationListener implements Listener {
             String message = plugin.getConfig().getString("starter-kit.welcome-message", "");
             if (message != null && !message.isBlank()) player.sendMessage(color(message));
             plugin.getLogger().info("[SUCCESS] Kit inicial " + kit + " entregado a " + player.getName());
+            // Solo el kit de la modalidad base: la bienvenida es para quien entra al servidor por
+            // primera vez, no cada vez que pisa una isla.
+            if (pendingKey.equals(starterPendingKey)) {
+                scheduleWelcomeMenu(player);
+            }
             if (!claimSaved) {
                 plugin.getLogger().severe("[StarterKit] La entrega quedó protegida por PDC, pero no se pudo guardar kit-claims.yml para "
                         + player.getName());
@@ -231,6 +236,16 @@ public final class ServerAutomationListener implements Listener {
 
         plugin.getLogger().warning("[StarterKit] Entrega pendiente para " + player.getName()
                 + " (" + result.status() + "): " + result.detail());
+    }
+
+    /** Abre el menu de bienvenida unos segundos despues de entregar el kit al jugador nuevo. */
+    private void scheduleWelcomeMenu(Player player) {
+        var welcome = plugin.getWelcomeMenuService();
+        if (welcome == null || !welcome.isEnabled()) return;
+        long delay = Math.clamp(plugin.getConfig().getLong("welcome-menu.delay-ticks", 40L), 0L, 1200L);
+        Bukkit.getScheduler().runTaskLater(plugin, () -> {
+            if (player.isOnline()) welcome.show(player);
+        }, delay);
     }
 
     private void markStarterKitDelivered(Player player, NamespacedKey pendingKey, NamespacedKey deliveredKey) {

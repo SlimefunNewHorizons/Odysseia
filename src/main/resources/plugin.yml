@@ -36,6 +36,10 @@ commands:
   laboratorio:
     description: Te lleva al Laboratorio creativo de pruebas.
     aliases: [lab, laboratory]
+  bienvenida:
+    description: Abre el menu de bienvenida (Slimefun, SkyBlock, OneBlock).
+    aliases: [welcome, inicio, empezar]
+    usage: /bienvenida [es|en]
   modalidades:
     description: Menu para saltar entre Survival, SkyBlock y OneBlock.
     aliases: [modalidad, modos, modes, modalities]

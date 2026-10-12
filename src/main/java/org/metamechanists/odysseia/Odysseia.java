@@ -67,6 +67,7 @@ public final class Odysseia extends JavaPlugin {
     private org.metamechanists.odysseia.integrations.DiscordTranslationBridgeService discordTranslationBridge;
     @Getter
     private org.metamechanists.odysseia.modalities.ModalityService modalityService;
+    private org.metamechanists.odysseia.welcome.WelcomeMenuService welcomeMenuService;
     private org.metamechanists.odysseia.listeners.ModalityStorageGuardListener modalityStorageGuard;
     private org.metamechanists.odysseia.laboratorio.SandboxStashRepository sandboxStash;
     @Getter
@@ -115,6 +116,7 @@ public final class Odysseia extends JavaPlugin {
         this.starTelemetry = new StarTelemetryPublisher(this);
         this.purchaseEngine.setTelemetry(telemetry -> starTelemetry.publishPurchase(purchaseEngine, telemetry));
         getCommand("odysseiapurchase").setExecutor(new org.metamechanists.odysseia.commands.PurchaseCommand(purchaseEngine));
+        this.welcomeMenuService = new org.metamechanists.odysseia.welcome.WelcomeMenuService(this);
         org.metamechanists.odysseia.listeners.ServerAutomationListener automation = new org.metamechanists.odysseia.listeners.ServerAutomationListener(this);
         org.metamechanists.odysseia.purchase.PendingKitService pendingKits = new org.metamechanists.odysseia.purchase.PendingKitService(this);
         org.metamechanists.odysseia.listeners.ChatFilterListener chatFilter = new org.metamechanists.odysseia.listeners.ChatFilterListener(this);
@@ -196,6 +198,8 @@ public final class Odysseia extends JavaPlugin {
         org.metamechanists.odysseia.commands.ModalidadesCommand modalidadesCmd =
                 new org.metamechanists.odysseia.commands.ModalidadesCommand(modalityService);
         getCommand("modalidades").setExecutor(modalidadesCmd);
+        getCommand("bienvenida").setExecutor(
+                new org.metamechanists.odysseia.commands.WelcomeCommand(welcomeMenuService));
         // Un solo ejecutor para las tres modalidades propias. Resuelve cual es por el
         // nombre del comando, asi que anadir otra solo pide declararla y registrarla.
         var viajeModalidad = new org.metamechanists.odysseia.commands.ModalityTravelCommand(this);
@@ -399,6 +403,10 @@ public final class Odysseia extends JavaPlugin {
     }
 
     /** Puede ser null si el plugin aun no termino de habilitarse. */
+    public org.metamechanists.odysseia.welcome.WelcomeMenuService getWelcomeMenuService() {
+        return welcomeMenuService;
+    }
+
     public org.metamechanists.odysseia.modalities.ModalityService getModalityService() {
         return modalityService;
     }
