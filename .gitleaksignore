@@ -1,0 +1,5 @@
+# Hallazgos de gitleaks revisados (2026-10-14): historicos/upstream, no son credenciales vigentes.
+# Odysseia: la clave de config.yml de 2026-06 NO coincide con la actual de la tienda (verificado); HEAD usa marcadores.
+02a07787dc25176d9357e8b6a6c0082a7a5e2232:src/main/resources/config.yml:generic-api-key:132
+4dcd92f64808b0c75d4a68aec0eebf60312632c0:src/main/resources/config.yml:generic-api-key:132
+c4039a768c076d52bf5578cddf729208ad4bdc32:src/test/java/org/metamechanists/odysseia/services/ReleaseManifestTest.java:generic-api-key:17
