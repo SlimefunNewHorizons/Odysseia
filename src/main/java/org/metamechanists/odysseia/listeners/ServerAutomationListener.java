@@ -136,9 +136,10 @@ public final class ServerAutomationListener implements Listener {
         String path = "players." + player.getUniqueId();
         long now = Instant.now().getEpochSecond();
         long last = rewards.getLong(path + ".last", 0L);
-        if (last != 0L && now - last < DAY_SECONDS) return;
-        int streak = last == 0L || now - last > DAY_SECONDS * 2 ? 1 : rewards.getInt(path + ".streak", 0) + 1;
-        int amount = streak >= 30 ? 20_000 : streak >= 14 ? 7_500 : streak >= 7 ? 3_000 : streak >= 3 ? 1_000 : 300;
+        DailyRewardPolicy.Result decision = DailyRewardPolicy.evaluate(last, rewards.getInt(path + ".streak", 0), now);
+        if (!decision.pay()) return;
+        int streak = decision.streak();
+        int amount = decision.amount();
         rewards.set(path + ".last", now);
         rewards.set(path + ".streak", streak);
         saveRewards();
