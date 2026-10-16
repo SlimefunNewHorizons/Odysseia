@@ -174,7 +174,7 @@ papa-de-mar:
   delivery:
     enabled: true
     interval-minutes: 15
-    message: '&eRecibiste la &6&l✦ Papa de mar ✦&e.'
+    message: '&eYou received the &6&l✦ Sea Potato ✦&e.'
   delivery-interval-minutes: 15
 slimefun-spawners:
   enabled: true
@@ -189,8 +189,8 @@ resource-pack:
   url: https://pack.drakescraft.cl/latest.zip
   sha1: eb865aadedba8a284c2948d82f4c1f52504318b9
   required: false
-  prompt: '&bDrakesCraft &7ofrece texturas para Slimefun y sus addons. &aEs opcional&7,
-    pero se ve mucho mejor.'
+  prompt: '&bDrakesCraft &7offers textures for Slimefun and its addons. &aThey are optional&7,
+    but make everything look much better.'
   delay-ticks: 40
   cache-bust: true
   log-status: true
@@ -219,8 +219,8 @@ starter-kit:
   delay-ticks: 400
   max-retries: 3
   retry-delay-ticks: 200
-  welcome-message: '&8[&6&lDrakesCraft&8] &eKit de inicio entregado. ¡Bienvenido a
-    la Odisea!'
+  welcome-message: '&8[&6&lDrakesCraft&8] &eStarter kit delivered. Welcome to the
+    Odyssey!'
   por-modalidad:
     skyblock: inicial-skyblock
     oneblock: inicial-oneblock
@@ -341,52 +341,52 @@ store:
       commands:
       - lp user {player} parent addtemp minero 30d accumulate
       - kit minero {player}
-      - msg {player} &a¡Gracias por adquirir el rol de Minero!
+      - msg {player} &aThank you for purchasing the Miner role!
     cazador:
       require-online: true
       commands:
       - lp user {player} parent addtemp cazador 30d accumulate
       - kit cazador {player}
-      - msg {player} &a¡Gracias por adquirir el rol de Cazador!
+      - msg {player} &aThank you for purchasing the Hunter role!
     constructor:
       require-online: true
       commands:
       - lp user {player} parent addtemp constructor 30d accumulate
       - kit constructor {player}
-      - msg {player} &a¡Gracias por adquirir el rol de Constructor!
+      - msg {player} &aThank you for purchasing the Builder role!
     lenador:
       require-online: true
       commands:
       - lp user {player} parent addtemp lenador 30d accumulate
       - kit lenador {player}
-      - msg {player} &a¡Gracias por adquirir el rol de Leñador!
+      - msg {player} &aThank you for purchasing the Lumberjack role!
     alquimista:
       require-online: true
       commands:
       - lp user {player} parent addtemp alquimista 30d accumulate
       - kit alquimista {player}
-      - msg {player} &a¡Gracias por adquirir el rol de Alquimista!
+      - msg {player} &aThank you for purchasing the Alchemist role!
     nomada:
       require-online: true
       commands:
       - lp user {player} parent addtemp nomada 30d accumulate
       - kit nomada {player}
-      - msg {player} &a¡Gracias por adquirir el rol de Nómada!
+      - msg {player} &aThank you for purchasing the Nomad role!
     dragmas-saco:
       require-online: true
       commands:
       - eco give {player} 50000
-      - msg {player} &a¡Recibiste tu Saco de 50,000 Dragmas!
+      - msg {player} &aYou received your 50,000 Dragmas Bag!
     dragmas-cofre:
       require-online: true
       commands:
       - eco give {player} 250000
-      - msg {player} &a¡Recibiste tu Cofre de 250,000 Dragmas!
+      - msg {player} &aYou received your 250,000 Dragmas Chest!
     dragmas-anfora:
       require-online: true
       commands:
       - eco give {player} 1000000
-      - msg {player} &a¡Recibiste tu Ánfora de 1,000,000 Dragmas!
+      - msg {player} &aYou received your 1,000,000 Dragmas Amphora!
 boss-balance:
   health-multiplier: 2.25
   damage-multiplier: 2.1
@@ -808,40 +808,40 @@ protectionstones:
 native-menus:
   shop:
     enabled: true
-    title: '&6⚡ &lMenú Principal &8· &fDrakesCraft &6⚡'
+    title: '&6⚡ &lMain Menu &8· &fDrakesCraft &6⚡'
     rows: 6
     entries:
       protecciones:
         slot: 10
         material: LODESTONE
-        name: '&f&lPolis &8· &7Protecciones'
+        name: '&f&lPolis &8· &7Protections'
         lore:
-        - '&7Bloques de claim para tu territorio.'
-        - '&8Desde Khora hasta Olimpo.'
+        - '&7Claim blocks for your territory.'
+        - '&8From Khora to Olympus.'
         - ''
-        - '&e➤ Clic para abrir &f/tiendaprot'
+        - '&e➤ Click to open &f/tiendaprot'
         commands:
         - tiendaprot
       subastas:
         slot: 12
         material: SUNFLOWER
-        name: '&e&lSubastas de Jugadores'
+        name: '&e&lPlayer Auctions'
         lore:
-        - '&7Mercado de jugadores de tu modalidad.'
-        - '&8Nada cruza entre Survival, Clásico o islas.'
+        - '&7Player market for your game mode.'
+        - '&8Nothing moves between Survival, Classic or islands.'
         - ''
-        - '&e➤ Clic para abrir &f/ca'
+        - '&e➤ Click to open &f/ca'
         commands:
         - ca
       slimefun:
         slot: 14
         material: AMETHYST_SHARD
-        name: '&b&lMercado Slimefun'
+        name: '&b&lSlimefun Market'
         lore:
-        - '&7Mercado de precios dinámicos.'
-        - '&8Lingotes, polvos y recursos.'
+        - '&7Market with dynamic prices.'
+        - '&8Ingots, dusts and resources.'
         - ''
-        - '&e➤ Clic para abrir &f/sfmercado'
+        - '&e➤ Click to open &f/sfmercado'
         commands:
         - sfmercado
       warps:
@@ -849,65 +849,65 @@ native-menus:
         material: COMPASS
         name: '&a&lPlayer Warps'
         lore:
-        - '&7Explora tiendas y bases públicas.'
-        - '&8Crea tu propio punto de venta.'
+        - '&7Explore public shops and bases.'
+        - '&8Create your own point of sale.'
         - ''
-        - '&e➤ Clic para abrir &f/pw'
+        - '&e➤ Click to open &f/pw'
         commands:
         - pw
       materiales:
         slot: 28
         material: LIME_CONCRETE
-        name: '&a&lBloques y Construcción'
+        name: '&a&lBlocks & Building'
         lore:
-        - '&7Materiales decorativos y construcción.'
-        - '&8Concreto, terracota, cristal y madera.'
+        - '&7Decorative and building materials.'
+        - '&8Concrete, terracotta, glass and wood.'
         - ''
-        - '&e➤ Clic para abrir &f/ultimateshop'
+        - '&e➤ Click to open &f/ultimateshop'
         commands:
         - ultimateshop
       trabajos:
         slot: 30
         material: GOLDEN_PICKAXE
-        name: '&6&lTrabajos &8· &7Jobs'
+        name: '&6&lJobs'
         lore:
-        - '&7Gana Dragmas trabajando en el servidor.'
-        - '&8Elige hasta 3 empleos simultáneos.'
+        - '&7Earn Dragmas while working on the server.'
+        - '&8Choose up to 3 jobs at once.'
         - ''
-        - '&e➤ Clic para abrir &f/jobs browse'
+        - '&e➤ Click to open &f/jobs browse'
         commands:
         - jobs browse
       habilidades:
         slot: 32
         material: EXPERIENCE_BOTTLE
-        name: '&c&lHabilidades &8· &7AuraSkills'
+        name: '&c&lSkills &8· &7AuraSkills'
         lore:
-        - '&7Sube estadísticas de minería y combate.'
-        - '&8Aumenta tu vida y fuerza pasiva.'
+        - '&7Level up mining and combat stats.'
+        - '&8Increase your health and passive strength.'
         - ''
-        - '&e➤ Clic para abrir &f/skills'
+        - '&e➤ Click to open &f/skills'
         commands:
         - skills
       encantos:
         slot: 34
         material: ENCHANTING_TABLE
-        name: '&d&lEncantamientos Únicos'
+        name: '&d&lUnique Enchantments'
         lore:
-        - '&7Encantamientos especiales del servidor.'
-        - '&8Desbloquea habilidades en tu equipo.'
+        - '&7Special server enchantments.'
+        - '&8Unlock abilities on your equipment.'
         - ''
-        - '&e➤ Clic para abrir &f/eenchants'
+        - '&e➤ Click to open &f/eenchants'
         commands:
         - eenchants
       kits:
         slot: 49
         material: DIAMOND_CHESTPLATE
-        name: '&b&lKits & Rangos VIP'
+        name: '&b&lKits & VIP Ranks'
         lore:
-        - '&7Revisa y reclama tus kits periódicos.'
-        - '&8Beneficios de rangos y donantes.'
+        - '&7Review and claim your periodic kits.'
+        - '&8Rank and supporter benefits.'
         - ''
-        - '&e➤ Clic para abrir &f/kitsvip'
+        - '&e➤ Click to open &f/kitsvip'
         commands:
         - odysseia:open-kits
   kits:
