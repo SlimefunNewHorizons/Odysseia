@@ -287,7 +287,7 @@ store:
       - eco give {player} 25000
       - kit hercules {player}
       - ps give viphercules {player} 1
-      - msg {player} &a¡Gracias por comprar el rango Hércules!
+      - msg {player} &aThank you for purchasing the Hercules rank!
     hestia:
       require-online: true
       commands:
@@ -295,7 +295,7 @@ store:
       - eco give {player} 50000
       - kit hestia {player}
       - ps give viphestia {player} 1
-      - msg {player} &a¡Gracias por comprar el rango Hestia!
+      - msg {player} &aThank you for purchasing the Hestia rank!
     hermes:
       require-online: true
       commands:
@@ -303,7 +303,7 @@ store:
       - eco give {player} 100000
       - kit hermes {player}
       - ps give viphermes {player} 1
-      - msg {player} &a¡Gracias por comprar el rango Hermes!
+      - msg {player} &aThank you for purchasing the Hermes rank!
     hefesto:
       require-online: true
       commands:
@@ -311,7 +311,7 @@ store:
       - eco give {player} 175000
       - kit hefesto {player}
       - ps give viphefesto {player} 1
-      - msg {player} &a¡Gracias por comprar el rango Hefesto!
+      - msg {player} &aThank you for purchasing the Hephaestus rank!
     artemisa:
       require-online: true
       commands:
@@ -319,7 +319,7 @@ store:
       - eco give {player} 300000
       - kit artemisa {player}
       - ps give vipartemisa {player} 1
-      - msg {player} &a¡Gracias por comprar el rango Artemisa!
+      - msg {player} &aThank you for purchasing the Artemis rank!
     afrodita:
       require-online: true
       commands:
@@ -327,7 +327,7 @@ store:
       - eco give {player} 500000
       - kit afrodita {player}
       - ps give vipafrodita {player} 1
-      - msg {player} &a¡Gracias por comprar el rango Afrodita!
+      - msg {player} &aThank you for purchasing the Aphrodite rank!
     zeus:
       require-online: true
       commands:
@@ -335,7 +335,7 @@ store:
       - eco give {player} 1000000
       - kit zeus {player}
       - ps give vipzeus {player} 1
-      - msg {player} &a¡Gracias por comprar el rango Zeus!
+      - msg {player} &aThank you for purchasing the Zeus rank!
     minero:
       require-online: true
       commands:
@@ -455,10 +455,10 @@ purchase-engine:
   announcements:
     enabled: true
     webhook-url: __REDACTED_PURCHASE_WEBHOOK__
-    chat-announcement: '&6&l⚡ &e¡Felicidades &b{player} &eha adquirido &a{product}
-      &een la tienda! ¡Gracias por apoyar al servidor! &6&l⚡'
-    discord-announcement: 🎉 **¡Felicidades {player} ha comprado {product} en el servidor!
-      ¡Gracias por mantener el servidor vivo!** 🎉
+    chat-announcement: '&6&l⚡ &b{player} &ehas purchased &a{product} &efrom the store!
+      &eThank you for supporting the server! &6&l⚡'
+    discord-announcement: 🎉 **{player} has purchased {product} from the server store!
+      Thank you for keeping the server alive!** 🎉
     global-sound:
       enabled: true
       sound: UI_TOAST_CHALLENGE_COMPLETE
@@ -474,9 +474,9 @@ bovedas:
     enabled: true
     revisar-contenedores: true
     profundidad-maxima: 3
-    mensaje: '&6DrakesCraft &8· &7Las &emochilas de Slimefun&7 no entran en la bóveda:
-      guardan un ID, no los ítems, y una sola valdría por cientos de slots. &7Usa
-      la mochila directamente o un cofre.'
+    mensaje: '&6DrakesCraft &8· &7Slimefun &ebackpacks&7 cannot enter the vault:
+      they store an ID rather than items, so one would represent hundreds of slots. &7Use
+      the backpack directly or a chest.'
 natural-spawn:
   enabled: false
   interval-seconds: 1800
