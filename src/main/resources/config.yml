@@ -155,14 +155,14 @@ papa-de-mar:
   saturation-restored: 8.4
   item:
     material: BAKED_POTATO
-    name: '&6&l✦ Papa de mar ✦'
+    name: '&6&l✦ Sea Potato ✦'
     lore:
-    - '&7Relicario legendario de Drakes.'
-    - '&7Ha cruzado temporadas, guerras y treguas.'
-    - '&7A veces se canjeó por llaves ante aldeanos.'
-    - '&7A veces fue comida, spam y pura leyenda.'
-    - '&8Dicen que con esta papa terminó una guerra.'
-    - '&8Y que quien la porta carga historia en las manos.'
+    - '&7A legendary Drakes relic.'
+    - '&7It has crossed seasons, wars and truces.'
+    - '&7It was sometimes traded to villagers for keys.'
+    - '&7It has been food, spam and pure legend.'
+    - '&8They say this potato ended a war.'
+    - '&8Its bearer carries history in their hands.'
     enchantments:
     - VANISHING_CURSE:1
   trueque:
@@ -2838,54 +2838,54 @@ kits:
     - material: TORCH
       amount: 64
     - material: WRITTEN_BOOK
-      book-title: '&6Guía de DrakesCraft'
+      book-title: '&6DrakesCraft Guide'
       author: '&eStaff DrakesCraft'
       pages:
       - |-
         &6&lDrakesCraft
-        &0Survival tecnológico para Java y Bedrock.
+        &0Technical survival for Java and Bedrock.
 
         &0Web: &9drakescraft.cl
         &0Servidor: &9mc.drakescraft.cl
       - |-
-        &6&lPrimeros pasos
+        &6&lGetting Started
 
         &0/spawn
         &0/sethome y /home
         &0/tpa y /tpaccept
         &0/rtp
-        &0/kit inicial
-        &0/tienda
+        &0/starter kit
+        &0/store
       - |-
         &6&lSlimefun
 
-        &0/sf guide abre la guía.
-        &0/sf search busca recetas.
+        &0/sf guide opens the guide.
+        &0/sf search finds recipes.
 
-        &4No abuses bugs, dupes ni mecanismos que dañen los TPS.
+        &4Do not abuse bugs, dupes or mechanics that harm TPS.
       - |-
-        &6&lEconomía
+        &6&lEconomy
 
         &0/bal y /pay
         &0/bank
-        &0/tienda
-        &0/ca para subastas
-        &0/pwarp para comercios de jugadores.
+        &0/store
+        &0/ca for auctions
+        &0/pwarp for player shops.
       - |-
-        &6&lProtecciones
+        &6&lProtections
 
-        &0Coloca tu ProtectionStone.
-        &0/ps add <jugador>
-        &0/ps remove <jugador>
+        &0Place your ProtectionStone.
+        &0/ps add <player>
+        &0/ps remove <player>
         &0/ps home
         &0/ps list
       - |-
-        &6&lAyuda
+        &6&lHelp
 
-        &0Usa /discord para soporte y anuncios.
-        &0Los rangos VIP duran 30 días.
+        &0Use /discord for support and announcements.
+        &0VIP ranks last 30 days.
 
-        &2Gracias por jugar en DrakesCraft.
+        &2Thank you for playing DrakesCraft.
   oldschool:
     cooldown: 30d
     permission: drakes.kit.oldschool
