@@ -1,9 +1,13 @@
 package org.metamechanists.odysseia.listeners;
 
 import io.papermc.paper.event.player.AsyncChatEvent;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
+import org.bukkit.Location;
+import org.bukkit.Sound;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
@@ -14,21 +18,29 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.jetbrains.annotations.NotNull;
 import org.metamechanists.odysseia.Odysseia;
+import org.metamechanists.odysseia.utils.WebhookSender;
 
 import java.io.File;
 import java.io.IOException;
 import java.text.Normalizer;
-import java.util.Locale;
-import java.util.regex.Pattern;
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;
+import java.util.regex.Pattern;
 
 /**
- * Filtro persistente de chat que reemplaza el script Denizen.
- *
- * La sancion es escalonada y se anuncia en el chat global: un jugador silenciado sin explicacion
- * lo vive como un fallo del servidor y lo reporta como tal.
+ * Filtro persistente de chat, guardián anti-spam y centinela de tolerancia cero para discurso de odio.
  */
 public final class ChatFilterListener implements Listener, CommandExecutor {
+
+    private static final List<String> DEFAULT_HATE_SPEECH_WORDS = List.of(
+            "nigger", "niggers", "nigga", "niggas", "n1gger", "n1gg3r", "negrata",
+            "faggot", "faggots", "kys", "kill yourself", "heil hitler", "sieg heil",
+            "negro de mierda", "muerte a los negros"
+    );
+
+    private record ChatRecord(long timestamp, String text) {}
+    private static final Map<UUID, Deque<ChatRecord>> RECENT_CHAT = new ConcurrentHashMap<>();
 
     private final Odysseia plugin;
     private final File file;
@@ -41,21 +53,137 @@ public final class ChatFilterListener implements Listener, CommandExecutor {
         importLegacyWarnings();
     }
 
-    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
+    @EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = false)
     public void onChat(AsyncChatEvent event) {
         Player player = event.getPlayer();
         if (!plugin.getConfig().getBoolean("chat-filter.enabled", true)
                 || player.hasPermission("drakes.chatfilter.bypass")) {
             return;
         }
-        String message = normalize(PlainTextComponentSerializer.plainText().serialize(event.message()));
+
+        String rawMessage = PlainTextComponentSerializer.plainText().serialize(event.message());
+        String normalizedMessage = normalize(rawMessage);
+
+        // 1. Tolerancia Cero: Discurso de Odio / Slurs Racistas (Auto-Ban + Auto-Ban-IP Inmediato)
+        String hateWord = findHateSpeech(normalizedMessage);
+        if (hateWord != null) {
+            event.setCancelled(true);
+            Bukkit.getScheduler().runTask(plugin, () -> banHateSpeech(player, hateWord, rawMessage));
+            return;
+        }
+
+        // 2. Anti-Spam / Rate-Limiting / Repetición masiva
+        if (checkSpam(player, normalizedMessage)) {
+            event.setCancelled(true);
+            return;
+        }
+
+        // 3. Filtro de Lenguaje Inapropiado Regular (Sistema de Warns escalonados)
         String found = plugin.getConfig().getStringList("chat-filter.words").stream()
-                .filter(word -> matches(message, word))
+                .filter(word -> matches(normalizedMessage, word))
                 .findFirst()
                 .orElse(null);
         if (found == null) return;
         event.setCancelled(true);
         Bukkit.getScheduler().runTask(plugin, () -> warn(player, found));
+    }
+
+    private String findHateSpeech(String normalizedMessage) {
+        List<String> hateList = plugin.getConfig().getStringList("chat-filter.hate-speech-words");
+        if (hateList.isEmpty()) {
+            hateList = DEFAULT_HATE_SPEECH_WORDS;
+        }
+        for (String word : hateList) {
+            if (matches(normalizedMessage, word)) {
+                return word;
+            }
+        }
+        return null;
+    }
+
+    private void banHateSpeech(Player player, String word, String raw) {
+        String name = player.getName();
+        String ip = (player.getAddress() != null && player.getAddress().getAddress() != null)
+                ? player.getAddress().getAddress().getHostAddress() : null;
+
+        Location location = player.getLocation();
+        if (location.getWorld() != null) {
+            location.getWorld().strikeLightningEffect(location);
+            location.getWorld().playSound(location, Sound.ENTITY_GENERIC_EXPLODE, 1.0f, 0.5f);
+        }
+
+        Bukkit.broadcastMessage(color("&c&lDrakesCraft &8· &f" + name + " &cfue &4&lBANEADO &cpermanentemente por discurso de odio."));
+
+        String reason = "Discurso de odio / Hate speech detectado por Centinela";
+        Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "ban " + name + " " + reason);
+        if (ip != null) {
+            Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "ban-ip " + ip + " " + reason);
+            Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "banip " + name + " " + reason);
+        }
+        player.kick(Component.text("[DrakesCraft] Baneado permanentemente por discurso de odio.", NamedTextColor.RED));
+
+        // Enviar alerta a webhook de moderación
+        String webhookUrl = plugin.getConfig().getString("discord.webhook-moderation-url", "");
+        if (!webhookUrl.isBlank()) {
+            String jsonPayload = String.format(
+                    "{\"username\":\"Odysseia Centinela\",\"embeds\":[{"
+                            + "\"title\":\"🚨 BAN AUTOMÁTICO: Discurso de Odio\",\"description\":\"Se aplicó baneo permanente de cuenta e IP de forma inmediata.\","
+                            + "\"color\":15158332,\"fields\":["
+                            + "{\"name\":\"Jugador\",\"value\":\"`%s`\",\"inline\":true},"
+                            + "{\"name\":\"IP\",\"value\":\"`%s`\",\"inline\":true},"
+                            + "{\"name\":\"Término Bloqueado\",\"value\":\"`%s`\",\"inline\":true},"
+                            + "{\"name\":\"Acción\",\"value\":\"`BAN PERMANENTE + BAN-IP`\",\"inline\":false}],"
+                            + "\"footer\":{\"text\":\"Odysseia Centinela · DrakesCraft\"}}]}",
+                    Odysseia.escapeJson(name),
+                    Odysseia.escapeJson(ip != null ? ip : "Desconocida"),
+                    Odysseia.escapeJson(word));
+            WebhookSender.sendAsync(plugin, webhookUrl, jsonPayload);
+        }
+    }
+
+    private boolean checkSpam(Player player, String message) {
+        if (player.hasPermission("drakes.antispam.bypass")) return false;
+        long now = System.currentTimeMillis();
+        UUID uuid = player.getUniqueId();
+        Deque<ChatRecord> history = RECENT_CHAT.computeIfAbsent(uuid, k -> new ArrayDeque<>());
+
+        synchronized (history) {
+            while (!history.isEmpty() && now - history.peekFirst().timestamp() > 10_000L) {
+                history.pollFirst();
+            }
+
+            // 1. Verificación de repetición consecutiva en menos de 4s
+            if (!history.isEmpty()) {
+                ChatRecord last = history.peekLast();
+                if (now - last.timestamp() < 4000L && last.text().equalsIgnoreCase(message)) {
+                    player.sendMessage(color("&c[!] No repitas el mismo mensaje tan rápido."));
+                    history.addLast(new ChatRecord(now, message));
+                    long repeats = history.stream().filter(r -> r.text().equalsIgnoreCase(message)).count();
+                    if (repeats >= 3) {
+                        Bukkit.getScheduler().runTask(plugin, () -> {
+                            Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "mute " + player.getName() + " 5m Repetición excesiva en chat");
+                        });
+                    }
+                    return true;
+                }
+            }
+
+            // 2. Verificación de flood / velocidad (más de 3 mensajes en 3 segundos)
+            long recent3s = history.stream().filter(r -> now - r.timestamp() < 3000L).count();
+            if (recent3s >= 3) {
+                player.sendMessage(color("&c[!] Estás escribiendo demasiado rápido. Por favor espera unos segundos."));
+                history.addLast(new ChatRecord(now, message));
+                if (recent3s >= 5) {
+                    Bukkit.getScheduler().runTask(plugin, () -> {
+                        Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "mute " + player.getName() + " 10m Flood masivo de chat");
+                    });
+                }
+                return true;
+            }
+
+            history.addLast(new ChatRecord(now, message));
+            return false;
+        }
     }
 
     /**

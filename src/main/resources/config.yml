@@ -732,6 +732,23 @@ chat-filter:
   duracion:
     mute: 10m
     ban: 1d
+  hate-speech-words:
+  - nigger
+  - niggers
+  - nigga
+  - niggas
+  - n1gger
+  - n1gg3r
+  - negrata
+  - faggot
+  - faggots
+  - kill yourself
+  - kys
+  - heil hitler
+  - sieg heil
+  - neo nazi
+  - negro de mierda
+  - muerte a los negros
   words:
   - ctm
   - conchetumare
@@ -743,7 +760,6 @@ chat-filter:
   - puta madre
   - mierda
   - maricon
-  - negro de mierda
   - mogolico
 translation:
   enabled: true
