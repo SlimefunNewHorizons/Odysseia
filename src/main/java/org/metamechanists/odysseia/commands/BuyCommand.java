@@ -37,24 +37,24 @@ public final class BuyCommand implements CommandExecutor {
         String url = plugin.getConfig().getString("tienda.url-web", DEFAULT_URL);
 
         if (!(sender instanceof Player player)) {
-            sender.sendMessage("Tienda oficial: " + url);
+            sender.sendMessage("Official store: " + url);
             return true;
         }
 
         player.sendMessage(color("&8&m                                                    "));
-        player.sendMessage(color("&6⚡ &lDrakesCraft &8· &fTienda oficial"));
+        player.sendMessage(color("&6⚡ &lDrakesCraft &8· &fOfficial Store"));
         player.sendMessage("");
-        player.sendMessage(color("&7Rangos, kits, protecciones y Dragmas."));
-        player.sendMessage(color("&7Entrega automatica al conectarte."));
+        player.sendMessage(color("&7Ranks, kits, protections and Dragmas."));
+        player.sendMessage(color("&7Automatic delivery when you join."));
         player.sendMessage("");
 
-        TextComponent link = new TextComponent(color("&a&l➜ Abrir la tienda"));
+        TextComponent link = new TextComponent(color("&a&l➜ Open the store"));
         link.setClickEvent(new ClickEvent(ClickEvent.Action.OPEN_URL, url));
         link.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new Text(color("&7" + url))));
         player.spigot().sendMessage(link);
 
         player.sendMessage("");
-        player.sendMessage(color("&8Abre el menú principal del servidor con &7/menu&8."));
+        player.sendMessage(color("&8Open the server main menu with &7/menu&8."));
         player.sendMessage(color("&8&m                                                    "));
         return true;
     }
