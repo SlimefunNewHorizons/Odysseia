@@ -57,7 +57,7 @@ public final class ModalidadesCommand implements CommandExecutor, Listener {
         Modality current = modalities.resolve(player);
         Inventory inventory = Bukkit.createInventory(new Holder(), 27, color("&8Modalidades de &6DrakesCraft"));
 
-        // Centramos las modalidades en la fila del medio.
+        // Distribuimos las modalidades en la fila central (slots 10..16 si son hasta 7)
         int[] slots = centeredSlots(list.size());
         for (int index = 0; index < list.size() && index < slots.length; index++) {
             Modality modality = list.get(index);
@@ -72,14 +72,15 @@ public final class ModalidadesCommand implements CommandExecutor, Listener {
                           : color("&eClic para ir &8· &7/" + modality.command()));
             inventory.setItem(slots[index], item(modality.icon(), modality.displayName(), lore, here));
         }
-        inventory.setItem(22, item("BOOK", "&6Como funciona", List.of(
-                color("&7El &aSurvival&7 es la modalidad base:"),
-                color("&7Slimefun, magia, jefes y progresion clasica."),
+        inventory.setItem(22, item("BOOK", "&6¿Cómo funciona?", List.of(
+                color("&7En todas las modalidades cuentas con &aSlimefun&7,"),
+                color("&7pero puedes jugar de forma &e100% clásica&7"),
+                color("&7sin usar máquinas si así lo prefieres."),
                 "",
-                color("&7En &bSkyBlock&7 y &dOneBlock&7 tu isla crece"),
-                color("&7segun el rango que tengas."),
+                color("&7En &bSkyBlock&7, &dOneBlock&7 y &6OneChunk&7 tu isla"),
+                color("&7se expande automáticamente al subir de &a/rankup&7."),
                 "",
-                color("&7Los rangos y kits son los mismos en " + enTodas() + ".")), false));
+                color("&7Tus rangos y kits son universales en " + enTodas() + ".")), false));
         player.openInventory(inventory);
     }
 
@@ -106,8 +107,12 @@ public final class ModalidadesCommand implements CommandExecutor, Listener {
         };
     }
 
-    /** Distribuye los iconos centrados en la fila del medio del cofre. */
+    /** Distribuye los iconos centrados en la fila del medio del cofre sin desbordar los bordes. */
     static int[] centeredSlots(int count) {
+        if (count == 6) {
+            // Distribución estéticamente equilibrada para 6 modalidades: slots 10, 11, 12, 14, 15, 16 (dejando el centro 13 o 10..15)
+            return new int[]{10, 11, 12, 14, 15, 16};
+        }
         int[] slots = new int[count];
         int start = 13 - (count / 2);
         for (int index = 0; index < count; index++) slots[index] = start + index;

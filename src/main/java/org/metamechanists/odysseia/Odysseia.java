@@ -317,6 +317,7 @@ public final class Odysseia extends JavaPlugin {
         Bukkit.getPluginManager().registerEvents(new ItemConsumeListener(this), this);
         Bukkit.getPluginManager().registerEvents(new ModerationListener(this), this);
         Bukkit.getPluginManager().registerEvents(new org.metamechanists.odysseia.listeners.WorldChangeSafetyListener(this), this);
+        Bukkit.getPluginManager().registerEvents(new org.metamechanists.odysseia.listeners.VoidLoopAndSafetyListener(this), this);
         // BossItemListener vive por duplicado: cuando se separo DrakesBosses se llevo una copia
         // identica de esta clase -- misma logica y la misma NamespacedKey 'odysseia:odyssey_item_type',
         // asi que reconoce exactamente los mismos objetos.

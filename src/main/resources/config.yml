@@ -4056,6 +4056,8 @@ modalidades:
       comando: skyblock
       mundos:
       - bskyblock_world
+      - bskyblock_world_nether
+      - bskyblock_world_the_end
     oneblock:
       nombre: '&dOneBlock'
       descripcion: Un solo bloque infinito, por fases.
@@ -4063,6 +4065,15 @@ modalidades:
       comando: oneblock
       mundos:
       - oneblock_world
+    onechunk:
+      nombre: '&6OneChunk'
+      descripcion: Un solo chunk (16x16) con Slimefun y bucle dimensional infinito.
+      icono: BEDROCK
+      comando: onechunk
+      mundos:
+      - onechunk_world
+      - onechunk_world_nether
+      - onechunk_world_the_end
     laboratorio:
       nombre: '&eLaboratorio'
       descripcion: Creativo para probar maquinas. Se borra cada lunes. Nada sale de
@@ -4080,6 +4091,7 @@ modalidades:
     modalidades-aisladas:
     - skyblock
     - oneblock
+    - onechunk
     - clasico
     - laboratorio
     comandos-restringidos:

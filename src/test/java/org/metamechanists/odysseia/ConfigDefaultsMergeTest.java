@@ -116,7 +116,7 @@ class ConfigDefaultsMergeTest {
         assertEquals(java.util.List.of("pv"),
                 produccion.getStringList("modalidades.guard.comandos-boveda"),
                 "una lista ya configurada no se pisa");
-        assertEquals(java.util.List.of("skyblock", "oneblock", "clasico", "laboratorio"),
+        assertEquals(java.util.List.of("skyblock", "oneblock", "onechunk", "clasico", "laboratorio"),
                 produccion.getStringList("modalidades.guard.modalidades-aisladas"),
                 "las modalidades aisladas no pueden quedar abiertas por una lista vacia");
     }
@@ -141,7 +141,7 @@ class ConfigDefaultsMergeTest {
         production.set("modalidades.guard.modalidades-aisladas", java.util.List.of("skyblock", "oneblock", "evento"));
 
         assertTrue(Odysseia.ensureRequiredModalityDefaults(production, defaults));
-        assertEquals(java.util.List.of("skyblock", "oneblock", "evento", "clasico", "laboratorio"),
+        assertEquals(java.util.List.of("skyblock", "oneblock", "evento", "onechunk", "clasico", "laboratorio"),
                 production.getStringList("modalidades.guard.modalidades-aisladas"));
         assertFalse(Odysseia.ensureRequiredModalityDefaults(production, defaults));
     }
