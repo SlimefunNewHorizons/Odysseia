@@ -4218,6 +4218,7 @@ modalidades:
     gestionan-su-spawn:
     - skyblock
     - oneblock
+    - onechunk
 corrupt-item-guard:
   enabled: true
 moderacion:
