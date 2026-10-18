@@ -11,3 +11,4 @@ build/
 
 # Worktrees y registros locales del asistente; nunca forman parte del plugin.
 .claude/worktrees/
+graphify-out/
