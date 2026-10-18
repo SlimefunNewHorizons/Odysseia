@@ -61,6 +61,7 @@ public final class ChequeCommand implements CommandExecutor, TabCompleter {
     @Override
     public List<String> onTabComplete(@NotNull CommandSender sender, @NotNull Command command,
                                       @NotNull String alias, @NotNull String[] args) {
+        if (!sender.hasPermission("odysseia.cheque.admin")) return List.of();
         if (args.length == 1) return List.of("give");
         if (args.length == 2) {
             String prefix = args[1].toLowerCase(Locale.ROOT);

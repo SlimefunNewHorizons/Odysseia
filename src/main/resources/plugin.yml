@@ -157,6 +157,7 @@ commands:
     usage: /sellinv
   cheque:
     description: Emite cheques físicos firmados para premios y crates.
+    permission: odysseia.cheque.admin
     aliases: [cheques]
     usage: /cheque give <jugador> <5000|10000|25000|50000> [cantidad]
   esteusuarioesviejo:
