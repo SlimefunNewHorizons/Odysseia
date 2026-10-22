@@ -35,11 +35,6 @@ horror-night:
   min-interval-minutes: 15
   worlds:
   - world
-protection-border:
-  enabled: true
-  material: LIGHT_BLUE_STAINED_GLASS
-  max-blocks: 2048
-  staff-permission: odysseia.protection.border
 owner-cycle:
   enabled: true
   interval-minutes: 30

@@ -58,9 +58,6 @@ commands:
     # Reemplaza el /buy del plugin de Tebex, que hay que apagar en su config.yml.
     description: Enlace a la tienda oficial en web.drakescraft.cl.
     aliases: [comprar, store, shop]
-  borde:
-    description: Muestra u oculta el borde de cristal de tu proteccion.
-    aliases: [bordes, border, limite]
   reencarnar:
     description: Rito de Reencarnacion y Prestigio para reiniciar progreso con Capsula de Recuerdos.
     aliases: [prestigio, ascender, reborn, reencarnacion]
@@ -138,10 +135,6 @@ commands:
     # El acceso publico canonico es /menu, definido con namespace en commands.yml.
     # /tienda y /shop se conservan como aliases de compatibilidad.
     usage: /menu [kits]
-  niebla:
-    description: Alterna o ajusta la niebla atmosférica de Halloween y terror.
-    aliases: [horrorfog, fog]
-    usage: /niebla [on|off|toggle]
   mountdragon:
     description: Abre el selector y pilota los dragones privados de JackStar6677 y Kika.
     aliases: [dragon, dragonmontar]
@@ -189,9 +182,6 @@ permissions:
     default: op
   odysseia.meteor.admin:
     description: Permite al dueño invocar meteoritos controlados.
-    default: op
-  odysseia.horrorfog:
-    description: Permite activar o desactivar la niebla densa de terror.
     default: op
   odysseia.troll:
     description: Permite usar comandos de troll inofensivos.

@@ -271,10 +271,6 @@ public final class Odysseia extends JavaPlugin {
         org.metamechanists.odysseia.commands.MeteorCommand meteorCommand = new org.metamechanists.odysseia.commands.MeteorCommand(this);
         getCommand("meteorito").setExecutor(meteorCommand);
         getCommand("meteorito").setTabCompleter(meteorCommand);
-        org.metamechanists.odysseia.commands.HorrorFogCommand fogCmd = new org.metamechanists.odysseia.commands.HorrorFogCommand(this);
-        getCommand("niebla").setExecutor(fogCmd);
-        getCommand("niebla").setTabCompleter(fogCmd);
-
         this.dragonMountService = new org.metamechanists.odysseia.dragon.DragonMountService(this);
         new org.metamechanists.odysseia.listeners.RankWalkerAbilitiesListener(this);
         new org.metamechanists.odysseia.weapons.DivineWeaponService(this);
@@ -349,10 +345,6 @@ public final class Odysseia extends JavaPlugin {
         this.changelogService.scheduleBootAudit();
         registerDynamicCommand("serverchangelog", new org.metamechanists.odysseia.commands.ChangelogCommand(this, changelogService));
         Bukkit.getPluginManager().registerEvents(new org.metamechanists.odysseia.listeners.FastMachinesProtectionListener(this), this);
-        org.metamechanists.odysseia.listeners.ProtectionBorderListener protectionBorder =
-                new org.metamechanists.odysseia.listeners.ProtectionBorderListener(this);
-        Bukkit.getPluginManager().registerEvents(protectionBorder, this);
-        getCommand("borde").setExecutor(protectionBorder);
         Bukkit.getPluginManager().registerEvents(automation, this);
         Bukkit.getPluginManager().registerEvents(new org.metamechanists.odysseia.listeners.BedrockRangeGuardListener(this), this);
         Bukkit.getPluginManager().registerEvents(new org.metamechanists.odysseia.listeners.SlimefunSpawnerLimitListener(this), this);
