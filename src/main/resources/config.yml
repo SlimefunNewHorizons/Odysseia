@@ -4060,6 +4060,8 @@ modalidades:
       comando: oneblock
       mundos:
       - oneblock_world
+      - oneblock_world_nether
+      - oneblock_world_the_end
     onechunk:
       nombre: '&6OneChunk'
       descripcion: Un solo chunk (16x16) con Slimefun y bucle dimensional infinito.
