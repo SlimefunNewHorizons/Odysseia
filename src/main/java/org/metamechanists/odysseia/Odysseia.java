@@ -360,6 +360,8 @@ public final class Odysseia extends JavaPlugin {
         Bukkit.getPluginManager().registerEvents(polisBaseline, this);
         this.horrorNightScheduler = new org.metamechanists.odysseia.events.HorrorNightScheduler(this);
         Bukkit.getPluginManager().registerEvents(horrorNightScheduler, this);
+        Bukkit.getPluginManager().registerEvents(new org.metamechanists.odysseia.events.TrickOrTreatListener(this), this);
+        org.metamechanists.odysseia.events.HerobrineApparition.barrerHuerfanos(this);
         this.vipExpiryAlertService = new org.metamechanists.odysseia.services.VipExpiryAlertService(this);
         vipExpiryAlertService.startScheduler();
         this.discordTranslationBridge = new org.metamechanists.odysseia.integrations.DiscordTranslationBridgeService(this);
@@ -720,6 +722,7 @@ public final class Odysseia extends JavaPlugin {
         if (horrorNightScheduler != null) {
             horrorNightScheduler.shutdown();
         }
+        org.metamechanists.odysseia.events.HerobrineApparition.limpiar();
         if (dragonMountService != null) {
             dragonMountService.shutdown();
         }

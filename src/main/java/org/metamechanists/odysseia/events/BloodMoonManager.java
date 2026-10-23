@@ -189,7 +189,9 @@ public final class BloodMoonManager implements Listener {
     }
 
     private boolean tocaEstaNoche(long noche) {
-        int cada = plugin.getConfig().getInt("blood-moon.every-nights", 5);
+        int cada = HalloweenPlus.cadaNochesLunaDeSangre(HalloweenPlus.activo(plugin.getConfig()),
+                plugin.getConfig().getInt("blood-moon.every-nights", 5),
+                plugin.getConfig().getInt("halloween-plus.blood-moon-every-nights", 2));
         if (cada > 0) {
             return noche % cada == 0L;
         }

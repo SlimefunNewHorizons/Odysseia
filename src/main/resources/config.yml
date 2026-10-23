@@ -33,6 +33,16 @@ ultragod:
 horror-night:
   enabled: true
   min-interval-minutes: 15
+# Contenido extra SOLO de octubre (Herobrine con su skin real, Luna de Sangre más seguida, sustos nuevos, truco o trato).
+# Se evalúa en cada uso: el 1 de noviembre se apaga solo, sin reiniciar. 'enabled: false' lo apaga antes.
+halloween-plus:
+  enabled: true
+  blood-moon-every-nights: 2
+  horror-extra-events: 3
+  horror-min-interval-minutes: 8
+  trick-or-treat-cooldown-seconds: 45
+  trick-or-treat-daily-cap: 12
+  trick-or-treat-treat-chance: 0.7
   worlds:
   - world
 owner-cycle:

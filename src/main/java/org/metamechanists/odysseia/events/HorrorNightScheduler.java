@@ -87,7 +87,9 @@ public class HorrorNightScheduler implements Listener {
                 Long lastDay = lastNightProcessedPerWorld.get(worldKey);
 
                 long now = System.currentTimeMillis();
-                long minIntervalMs = Math.max(0L, plugin.getConfig().getLong("horror-night.min-interval-minutes", 15L)) * 60_000L;
+                long minIntervalMs = Math.max(0L, HalloweenPlus.intervaloHorrorMinutos(HalloweenPlus.activo(plugin.getConfig()),
+                        plugin.getConfig().getLong("horror-night.min-interval-minutes", 15L),
+                        plugin.getConfig().getLong("halloween-plus.horror-min-interval-minutes", 8L))) * 60_000L;
 
                 // La noche perpetua de Halloween (SeasonalEventManager) usa setTime, que adelanta fullTime
                 // y abre un "día" nuevo cada pocos minutos: el intervalo real evita repetir la secuencia.
@@ -119,7 +121,8 @@ public class HorrorNightScheduler implements Listener {
         }
 
         // Programar entre 4 y 6 eventos aleatorios durante la noche
-        int eventCount = 4 + random.nextInt(3);
+        int eventCount = HalloweenPlus.eventosPorNoche(HalloweenPlus.activo(plugin.getConfig()), 4 + random.nextInt(3),
+                plugin.getConfig().getInt("halloween-plus.horror-extra-events", 3));
         for (int i = 1; i <= eventCount; i++) {
             long delayTicks = (long) (i * 220 + random.nextInt(300));
             final int eventIndex = i;
@@ -146,7 +149,7 @@ public class HorrorNightScheduler implements Listener {
         if (eligiblePlayers.isEmpty()) return;
 
         Player victim = eligiblePlayers.get(random.nextInt(eligiblePlayers.size()));
-        int horrorType = random.nextInt(7);
+        int horrorType = random.nextInt(HalloweenPlus.tiposDeSusto(HalloweenPlus.activo(plugin.getConfig())));
 
         switch (horrorType) {
             case 0 -> WitherStormBoss.triggerScreamer(victim);
@@ -156,6 +159,15 @@ public class HorrorNightScheduler implements Listener {
             case 4 -> triggerHerobrineMirage(victim);
             case 5 -> triggerAudioHallucination(victim);
             case 6 -> triggerDimensionalGlitch(victim);
+            // Solo octubre (tiposDeSusto devuelve 11 únicamente mientras HalloweenPlus está activo)
+            case 7 -> {
+                if (!HerobrineApparition.aparecer(plugin, victim, -60 + random.nextInt(121))) {
+                    HalloweenHorrorEvents.susurroDeHerobrine(victim);
+                }
+            }
+            case 8 -> HalloweenHorrorEvents.lluviaDeSangre(plugin, victim);
+            case 9 -> HalloweenHorrorEvents.ojosEnLaOscuridad(plugin, victim);
+            case 10 -> HalloweenHorrorEvents.enjambreDeMurcielagos(plugin, victim);
         }
     }
 
@@ -215,6 +227,9 @@ public class HorrorNightScheduler implements Listener {
 
     /** Evento 4: Espejismo de Herobrine en la niebla periférica. */
     private void triggerHerobrineMirage(Player player) {
+        if (HalloweenPlus.activo(plugin.getConfig()) && HerobrineApparition.aparecer(plugin, player, -40 + random.nextInt(81))) {
+            return; // en octubre: Herobrine con su skin real; si no hay sitio seguro cae al espejismo clásico
+        }
         Location front = player.getLocation().add(player.getLocation().getDirection().multiply(8.0)).add(0, 0.2, 0);
         if (front.getWorld() == null) return;
 
