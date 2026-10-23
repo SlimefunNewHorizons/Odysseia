@@ -174,7 +174,6 @@ public class HorrorNightScheduler implements Listener {
         player.playSound(player.getLocation(), Sound.AMBIENT_CAVE, 1.8f, 0.4f);
         player.playSound(player.getLocation(), Sound.ENTITY_ENDERMAN_STARE, 1.5f, 0.5f);
         player.playSound(player.getLocation(), Sound.ENTITY_WARDEN_HEARTBEAT, 1.6f, 0.5f);
-        player.addPotionEffect(new PotionEffect(PotionEffectType.DARKNESS, 120, 1, false, false));
     }
 
     /** Evento 2: Aparición fugaz de una Sombra del Vacío. */
@@ -208,7 +207,6 @@ public class HorrorNightScheduler implements Listener {
         player.getWorld().strikeLightningEffect(player.getLocation().add(random.nextInt(10) - 5, 0, random.nextInt(10) - 5));
         player.playSound(player.getLocation(), Sound.ENTITY_LIGHTNING_BOLT_THUNDER, 2.0f, 0.5f);
         player.addPotionEffect(new PotionEffect(PotionEffectType.BLINDNESS, 60, 1, false, false));
-        player.addPotionEffect(new PotionEffect(PotionEffectType.DARKNESS, 120, 1, false, false));
 
         org.metamechanists.odysseia.util.ParticleCompat.spawnDragonBreath(
                 player.getWorld(), player.getLocation().add(0, 2, 0),
@@ -267,7 +265,6 @@ public class HorrorNightScheduler implements Listener {
         player.playSound(loc, Sound.ENTITY_ELDER_GUARDIAN_CURSE, 1.0f, 0.5f);
 
         player.addPotionEffect(new PotionEffect(PotionEffectType.NAUSEA, 100, 0, false, false));
-        player.addPotionEffect(new PotionEffect(PotionEffectType.DARKNESS, 80, 1, false, false));
 
         player.sendMessage(ChatColor.translateAlternateColorCodes('&',
                 "&c&l✦ [DISTORSIÓN] &4La realidad a tu alrededor parpadea. Un fragmento del multiverso se ha superpuesto a este mundo."));

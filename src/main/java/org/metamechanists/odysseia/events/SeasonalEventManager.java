@@ -63,8 +63,6 @@ public class SeasonalEventManager implements Listener {
     private long lastBirthdayBroadcast = 0;
 
     private static final NamespacedKey HALLOWEEN_TREAT_KEY = new NamespacedKey("odysseia", "halloween_treat");
-    private static final NamespacedKey ORANGE_FOG_OPT_OUT_KEY = new NamespacedKey("odysseia", "orange_fog_disabled");
-    private final Set<UUID> orangeFogDisabled = java.util.concurrent.ConcurrentHashMap.newKeySet();
     private final java.util.concurrent.ConcurrentHashMap<String, Long> midnightBellChimedPerWorld = new java.util.concurrent.ConcurrentHashMap<>();
 
     // Moduladores administrativos (null = ciclo automático de calendario)
@@ -111,11 +109,10 @@ public class SeasonalEventManager implements Listener {
 
         // 1. MÓDULO HALLOWEEN (OCTUBRE)
         if (isHalloweenActive()) {
-            // Bruma y Niebla Naranja atmosférica en mundos normales
+            // Ambiente sonoro de Halloween en mundos normales (la niebla naranja y la oscuridad se quitaron: 2026-10-23)
             for (World world : Bukkit.getWorlds()) {
                 if (world.getEnvironment() != World.Environment.NORMAL) continue;
                 long time = world.getTime();
-                boolean isNightOrStorm = (time >= 12000 && time <= 23500) || world.hasStorm();
 
                 // Campanada lúgubre de medianoche (una vez por noche por mundo)
                 if (time >= 17900 && time <= 18100) {
@@ -129,40 +126,8 @@ public class SeasonalEventManager implements Listener {
                         }
                     }
                 }
-
-                // Inmersión de Niebla Naranja y partículas para jugadores activos
-                for (Player player : world.getPlayers()) {
-                    if (!player.isOnline() || player.isDead() || player.getGameMode() == GameMode.SPECTATOR) continue;
-                    if (orangeFogDisabled.contains(player.getUniqueId())) continue;
-
-                    // Si es de noche o tormenta, contraer suavemente el plano de niebla (DARKNESS amp 0, ambient).
-                    // En modalidades de islas (SkyBlock y OneBlock), se omite el efecto de ceguera DARKNESS
-                    // para preservar la visión de los límites de bloques sobre el vacío.
-                    String worldName = world.getName().toLowerCase(Locale.ROOT);
-                    boolean isIslandWorld = worldName.contains("bskyblock") || worldName.contains("oneblock");
-                    if (isNightOrStorm && !isIslandWorld) {
-                        player.addPotionEffect(new PotionEffect(PotionEffectType.DARKNESS, 45, 0, true, false, false));
-                    }
-
-                    // Esparcir partículas de niebla naranja alrededor del jugador
-                    Location eye = player.getEyeLocation();
-                    double dx = (random.nextDouble() - 0.5) * 10.0;
-                    double dy = (random.nextDouble() - 0.5) * 3.5;
-                    double dz = (random.nextDouble() - 0.5) * 10.0;
-                    Particle.DustOptions dust = (random.nextBoolean())
-                            ? new Particle.DustOptions(Color.fromRGB(255, 115, 0), 1.8f)
-                            : new Particle.DustOptions(Color.fromRGB(230, 65, 0), 1.5f);
-                    player.spawnParticle(Particle.DUST, eye.clone().add(dx, dy, dz), 1, dust);
-
-                    // Pequeñas chispas y esporas flotantes
-                    if (random.nextDouble() < 0.35) {
-                        player.spawnParticle(Particle.FLAME, eye.clone().add((random.nextDouble() - 0.5) * 6, (random.nextDouble() - 0.5) * 2, (random.nextDouble() - 0.5) * 6), 1, 0, 0.01, 0, 0.01);
-                    }
-                    if (random.nextDouble() < 0.25) {
-                        player.spawnParticle(Particle.CRIMSON_SPORE, eye.clone().add((random.nextDouble() - 0.5) * 8, (random.nextDouble() - 0.5) * 3, (random.nextDouble() - 0.5) * 8), 1, 0, 0.01, 0, 0.01);
-                    }
-                }
             }
+
 
             // Emisión atmosférica cada 12 minutos (720.000 ms)
             if (now - lastAtmosphericBroadcast >= 720_000L && !Bukkit.getOnlinePlayers().isEmpty()) {
@@ -254,25 +219,6 @@ public class SeasonalEventManager implements Listener {
         player.sendMessage(ChatColor.translateAlternateColorCodes('&',
                 "&8[&6🎃&8] &eHas descansado en tu cama. El insomnio se disipa bajo la bruma otoñal de Halloween."));
         player.playSound(player.getLocation(), Sound.BLOCK_AMETHYST_BLOCK_CHIME, 1.0f, 1.2f);
-    }
-
-    /**
-     * Sincroniza la preferencia persistente de niebla de Halloween del jugador al conectar.
-     */
-    @EventHandler(priority = EventPriority.MONITOR)
-    public void onPlayerJoin(PlayerJoinEvent event) {
-        Player player = event.getPlayer();
-        if (player.getPersistentDataContainer().has(ORANGE_FOG_OPT_OUT_KEY, PersistentDataType.BYTE)) {
-            orangeFogDisabled.add(player.getUniqueId());
-        }
-    }
-
-    /**
-     * Limpia la memoria de sesión al desconectarse el jugador.
-     */
-    @EventHandler(priority = EventPriority.MONITOR)
-    public void onPlayerQuit(PlayerQuitEvent event) {
-        orangeFogDisabled.remove(event.getPlayer().getUniqueId());
     }
 
     /**
@@ -546,32 +492,6 @@ public class SeasonalEventManager implements Listener {
 
         String name = item.getItemMeta().getDisplayName().toLowerCase(Locale.ROOT);
         return name.contains("guadaña") || name.contains("guadana") || name.contains("caronte");
-    }
-
-    public void toggleOrangeFog(UUID uuid) {
-        setOrangeFogDisabled(uuid, !orangeFogDisabled.contains(uuid));
-    }
-
-    public void setOrangeFogDisabled(UUID uuid, boolean disabled) {
-        if (disabled) {
-            orangeFogDisabled.add(uuid);
-        } else {
-            orangeFogDisabled.remove(uuid);
-        }
-        Player player = Bukkit.getPlayer(uuid);
-        if (player != null && player.isOnline()) {
-            if (disabled) {
-                player.getPersistentDataContainer().set(ORANGE_FOG_OPT_OUT_KEY, PersistentDataType.BYTE, (byte) 1);
-                player.removePotionEffect(PotionEffectType.DARKNESS);
-                player.removePotionEffect(PotionEffectType.BLINDNESS);
-            } else {
-                player.getPersistentDataContainer().remove(ORANGE_FOG_OPT_OUT_KEY);
-            }
-        }
-    }
-
-    public boolean isOrangeFogDisabled(UUID uuid) {
-        return orangeFogDisabled.contains(uuid);
     }
 
     public ItemStack createHalloweenTreat(int amount) {
