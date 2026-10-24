@@ -312,6 +312,7 @@ public final class Odysseia extends JavaPlugin {
         Bukkit.getPluginManager().registerEvents(new ArmorEffectsListener(this), this);
         Bukkit.getPluginManager().registerEvents(new ItemConsumeListener(this), this);
         Bukkit.getPluginManager().registerEvents(new ModerationListener(this), this);
+        Bukkit.getPluginManager().registerEvents(new org.metamechanists.odysseia.listeners.EmptySayCommandGuardListener(this), this);
         Bukkit.getPluginManager().registerEvents(new org.metamechanists.odysseia.listeners.WorldChangeSafetyListener(this), this);
         Bukkit.getPluginManager().registerEvents(new org.metamechanists.odysseia.listeners.VoidLoopAndSafetyListener(this), this);
         // BossItemListener vive por duplicado: cuando se separo DrakesBosses se llevo una copia
