@@ -79,7 +79,7 @@ public final class BackpackDetector {
 
     /** True si el item es, en si mismo, una mochila de Slimefun. */
     public static boolean esMochila(ItemStack item) {
-        if (item == null || item.getType().isAir()) return false;
+        if (item == null || item.getType().isAir() || !item.hasItemMeta()) return false;
 
         Boolean segunSlimefun = preguntarASlimefun(item);
         if (segunSlimefun != null) return segunSlimefun;

@@ -27,6 +27,8 @@ import java.util.logging.Level;
 public final class CustomContentResolver {
 
     private static Class<?> slimefunItemClass;
+    private static java.lang.reflect.Method getByIdMethod;
+    private static java.lang.reflect.Method getItemMethod;
     private static boolean slimefunChecked;
 
     private CustomContentResolver() {
@@ -61,10 +63,17 @@ public final class CustomContentResolver {
         if (!slimefunChecked) {
             slimefunChecked = true;
             if (Bukkit.getPluginManager().getPlugin("Slimefun") != null) {
-                try {
-                    slimefunItemClass = Class.forName("io.github.thebusybiscuit.slimefun4.api.items.SlimefunItem");
-                } catch (ClassNotFoundException error) {
-                    slimefunItemClass = null;
+                for (String base : java.util.List.of("com.github.drakescraft_labs.slimefun4", "io.github.thebusybiscuit.slimefun4")) {
+                    try {
+                        slimefunItemClass = Class.forName(base + ".api.items.SlimefunItem");
+                        getByIdMethod = slimefunItemClass.getMethod("getById", String.class);
+                        getItemMethod = slimefunItemClass.getMethod("getItem");
+                        break;
+                    } catch (ReflectiveOperationException error) {
+                        slimefunItemClass = null;
+                        getByIdMethod = null;
+                        getItemMethod = null;
+                    }
                 }
             }
         }
@@ -74,11 +83,11 @@ public final class CustomContentResolver {
     /** Copia del item de Slimefun con ese id, o null si no existe o Slimefun no esta. */
     public static ItemStack slimefunItem(String id) {
         Class<?> cls = slimefunClass();
-        if (cls == null || id == null || id.isBlank()) return null;
+        if (cls == null || getByIdMethod == null || getItemMethod == null || id == null || id.isBlank()) return null;
         try {
-            Object item = cls.getMethod("getById", String.class).invoke(null, id.trim().toUpperCase(Locale.ROOT));
+            Object item = getByIdMethod.invoke(null, id.trim().toUpperCase(Locale.ROOT));
             if (item == null) return null;
-            Object stack = cls.getMethod("getItem").invoke(item);
+            Object stack = getItemMethod.invoke(item);
             return stack instanceof ItemStack found ? found.clone() : null;
         } catch (ReflectiveOperationException | RuntimeException error) {
             Bukkit.getLogger().log(Level.WARNING, "[Kits] No se pudo resolver el item de Slimefun " + id, error);
