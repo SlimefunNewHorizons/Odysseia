@@ -1,5 +1,6 @@
 package org.metamechanists.odysseia.boss;
 
+import org.metamechanists.odysseia.integrations.SlimefunPkg;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Color;
@@ -108,7 +109,7 @@ public class BossManager implements Listener {
         java.lang.reflect.Method getById = null;
         java.lang.reflect.Method getItem = null;
         try {
-            Class<?> slimefunItem = Class.forName("com.github.drakescraft_labs.slimefun4.api.items.SlimefunItem");
+            Class<?> slimefunItem = SlimefunPkg.forName("api.items.SlimefunItem");
             getById = slimefunItem.getMethod("getById", String.class);
             getItem = slimefunItem.getMethod("getItem");
         } catch (ReflectiveOperationException ignored) {

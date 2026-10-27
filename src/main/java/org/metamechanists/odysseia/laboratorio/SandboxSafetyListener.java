@@ -1,5 +1,6 @@
 package org.metamechanists.odysseia.laboratorio;
 
+import org.metamechanists.odysseia.integrations.SlimefunPkg;
 import org.bukkit.ChatColor;
 import org.bukkit.GameMode;
 import org.bukkit.Material;
@@ -59,7 +60,7 @@ public final class SandboxSafetyListener implements Listener {
         Method byItem = null;
         Method id = null;
         try {
-            Class<?> slimefunItem = Class.forName("com.github.drakescraft_labs.slimefun4.api.items.SlimefunItem");
+            Class<?> slimefunItem = SlimefunPkg.forName("api.items.SlimefunItem");
             byItem = slimefunItem.getMethod("getByItem", ItemStack.class);
             id = slimefunItem.getMethod("getId");
         } catch (ReflectiveOperationException error) {

@@ -1,5 +1,6 @@
 package org.metamechanists.odysseia.laboratorio;
 
+import org.metamechanists.odysseia.integrations.SlimefunPkg;
 import org.bukkit.Chunk;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
@@ -47,7 +48,7 @@ public final class SandboxChunkLimitListener implements Listener {
         Method locations = null;
         Method check = null;
         try {
-            Class<?> blockStorage = Class.forName("com.github.drakescraft_labs.slimefun4.legacy.api.BlockStorage");
+            Class<?> blockStorage = SlimefunPkg.forName("legacy.api.BlockStorage");
             locations = blockStorage.getMethod("getLocations", Chunk.class);
             check = blockStorage.getMethod("checkID", Location.class);
         } catch (ReflectiveOperationException error) {
@@ -92,7 +93,7 @@ public final class SandboxChunkLimitListener implements Listener {
      */
     private boolean esItemSlimefun(BlockPlaceEvent event) {
         try {
-            Class<?> slimefunItem = Class.forName("com.github.drakescraft_labs.slimefun4.api.items.SlimefunItem");
+            Class<?> slimefunItem = SlimefunPkg.forName("api.items.SlimefunItem");
             Object item = slimefunItem.getMethod("getByItem", org.bukkit.inventory.ItemStack.class)
                     .invoke(null, event.getItemInHand());
             return item != null;

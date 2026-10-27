@@ -1,5 +1,6 @@
 package org.metamechanists.odysseia.commands;
 
+import org.metamechanists.odysseia.integrations.SlimefunPkg;
 import net.milkbowl.vault.economy.Economy;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -48,7 +49,7 @@ public final class SellInventoryCommand implements CommandExecutor {
 
     private void initReflection() {
         try {
-            Class<?> sfItemClass = Class.forName("com.github.drakescraft_labs.slimefun4.api.items.SlimefunItem");
+            Class<?> sfItemClass = SlimefunPkg.forName("api.items.SlimefunItem");
             this.slimefunGetByItemMethod = sfItemClass.getMethod("getByItem", ItemStack.class);
             this.reflectionInitialized = true;
         } catch (Throwable ignored) {

@@ -187,10 +187,19 @@ public class SeasonalEventManager implements Listener {
      * Permite que los jugadores duerman en sus camas y avancen la noche al alba con normalidad.
      * Al saltar la noche, emite un mensaje temático de Halloween al amanecer.
      */
+    /** getSkipReason() cambia de tipo de retorno entre 1.21.11 y 26.x (ClockTimeSkipEvent.SkipReason): se lee por reflexión. */
+    private static String motivoDeSalto(TimeSkipEvent event) {
+        try {
+            return String.valueOf(event.getClass().getMethod("getSkipReason").invoke(event));
+        } catch (ReflectiveOperationException e) {
+            return "";
+        }
+    }
+
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onTimeSkip(TimeSkipEvent event) {
         if (!isHalloweenActive()) return;
-        if (event.getSkipReason() == TimeSkipEvent.SkipReason.NIGHT_SKIP) {
+        if ("NIGHT_SKIP".equals(motivoDeSalto(event))) {
             Bukkit.getScheduler().runTaskLater(plugin, () -> {
                 for (Player p : Bukkit.getOnlinePlayers()) {
                     p.sendMessage(ChatColor.translateAlternateColorCodes('&',

@@ -1,5 +1,6 @@
 package org.metamechanists.odysseia.listeners;
 
+import org.metamechanists.odysseia.integrations.SlimefunPkg;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.block.Block;
@@ -44,14 +45,14 @@ public final class FastMachinesProtectionListener implements Listener {
         Method isMember = null;
 
         try {
-            Class<?> blockStorage = Class.forName("com.github.drakescraft_labs.slimefun4.legacy.api.BlockStorage");
-            Class<?> slimefunItem = Class.forName("com.github.drakescraft_labs.slimefun4.api.items.SlimefunItem");
+            Class<?> blockStorage = SlimefunPkg.forName("legacy.api.BlockStorage");
+            Class<?> slimefunItem = SlimefunPkg.forName("api.items.SlimefunItem");
             Class<?> psRegion = Class.forName("dev.espi.protectionstones.PSRegion");
 
             storageCheck = blockStorage.getMethod("checkID", Location.class);
             itemById = slimefunItem.getMethod("getById", String.class);
             itemAddon = slimefunItem.getMethod("getAddon");
-            addonName = Class.forName("com.github.drakescraft_labs.slimefun4.api.SlimefunAddon").getMethod("getName");
+            addonName = SlimefunPkg.forName("api.SlimefunAddon").getMethod("getName");
             fromLocation = psRegion.getMethod("fromLocation", Location.class);
             isOwner = psRegion.getMethod("isOwner", UUID.class);
             isMember = psRegion.getMethod("isMember", UUID.class);

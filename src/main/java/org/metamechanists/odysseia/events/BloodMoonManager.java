@@ -1,5 +1,6 @@
 package org.metamechanists.odysseia.events;
 
+import org.metamechanists.odysseia.integrations.SlimefunPkg;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
@@ -98,7 +99,7 @@ public final class BloodMoonManager implements Listener {
         Method getById = null;
         Method getItem = null;
         try {
-            Class<?> type = Class.forName("com.github.drakescraft_labs.slimefun4.api.items.SlimefunItem");
+            Class<?> type = SlimefunPkg.forName("api.items.SlimefunItem");
             getById = type.getMethod("getById", String.class);
             getItem = type.getMethod("getItem");
         } catch (ReflectiveOperationException ignored) {

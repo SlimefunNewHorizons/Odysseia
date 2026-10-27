@@ -1,5 +1,6 @@
 package org.metamechanists.odysseia.listeners;
 
+import org.metamechanists.odysseia.integrations.SlimefunPkg;
 import org.bukkit.Bukkit;
 import org.bukkit.NamespacedKey;
 import org.bukkit.Location;
@@ -113,7 +114,7 @@ public class SFMasterWatcherListener implements Listener {
 
     private Method findSlimefunGetByItem() {
         try {
-            Class<?> slimefunItem = Class.forName("com.github.drakescraft_labs.slimefun4.api.items.SlimefunItem");
+            Class<?> slimefunItem = SlimefunPkg.forName("api.items.SlimefunItem");
             return slimefunItem.getMethod("getByItem", ItemStack.class);
         } catch (ReflectiveOperationException exception) {
             plugin.getLogger().severe("No se pudo enlazar la API de Slimefun para proteger SFMaster: " + exception.getMessage());
