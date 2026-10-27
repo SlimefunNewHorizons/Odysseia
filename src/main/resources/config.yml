@@ -933,7 +933,7 @@ native-menus:
         - odysseia:open-kits
   kits:
     title: '&8DrakesCraft &7| &6Kits VIP'
-    rows: 3
+    rows: 4
     order:
     - hercules
     - hestia
@@ -942,6 +942,14 @@ native-menus:
     - artemisa
     - afrodita
     - zeus
+    - thor
+    - anubis
+    - poseidon
+    - titanjapeto
+    - titanoceanus
+    - titanhiperion
+    - titancronos
+    - titancaos
     - oldschool
     icons:
       hercules:
@@ -965,6 +973,30 @@ native-menus:
       zeus:
         material: NETHERITE_SWORD
         name: '&e&lZeus'
+      thor:
+        material: MACE
+        name: '&b&lThor'
+      anubis:
+        material: SOUL_LANTERN
+        name: '&6&lAnubis'
+      poseidon:
+        material: TRIDENT
+        name: '&3&lPoseidón'
+      titanjapeto:
+        material: NETHERITE_INGOT
+        name: '&6&lTitán Jápeto'
+      titanoceanus:
+        material: HEART_OF_THE_SEA
+        name: '&b&lTitán Oceanus'
+      titanhiperion:
+        material: SUNFLOWER
+        name: '&e&lTitán Hiperión'
+      titancronos:
+        material: CLOCK
+        name: '&d&lTitán Cronos'
+      titancaos:
+        material: NETHER_STAR
+        name: '&5&lTitán Caos'
       oldschool:
         material: BOOK
         name: '&7&lOldschool'
