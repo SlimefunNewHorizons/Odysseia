@@ -21,6 +21,14 @@ public final class SlimefunPkg {
                 ultimo = e;
             }
         }
+        // En la T2 las clases legacy (BlockStorage, etc.) siguen en me.mrCookieSlime.Slimefun.*
+        if (relativa.startsWith("legacy.")) {
+            try {
+                return Class.forName("me.mrCookieSlime.Slimefun." + relativa.substring("legacy.".length()));
+            } catch (ClassNotFoundException e) {
+                ultimo = e;
+            }
+        }
         throw ultimo;
     }
 }
