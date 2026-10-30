@@ -195,6 +195,8 @@ public final class Odysseia extends JavaPlugin {
         this.modalityService = new org.metamechanists.odysseia.modalities.ModalityService(this);
         Bukkit.getPluginManager().registerEvents(
                 new org.metamechanists.odysseia.listeners.ModalityAdvancementListener(modalityService), this);
+        getServer().getPluginManager().registerEvents(
+                new org.metamechanists.odysseia.listeners.ClasicoPurezaListener(this), this);
         org.metamechanists.odysseia.commands.ModalidadesCommand modalidadesCmd =
                 new org.metamechanists.odysseia.commands.ModalidadesCommand(modalityService);
         getCommand("modalidades").setExecutor(modalidadesCmd);

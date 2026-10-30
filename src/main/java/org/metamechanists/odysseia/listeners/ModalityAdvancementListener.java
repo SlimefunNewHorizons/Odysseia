@@ -35,6 +35,12 @@ public final class ModalityAdvancementListener implements Listener {
         // null significa que Minecraft decidió no anunciarlo (recetas y avances ocultos).
         if (event.message() == null || event.getAdvancement().getDisplay() == null) return;
 
+        // Los logros vanilla (minecraft:*) no se anuncian: solo los de Slimefun y addons.
+        if (!esAvanceExterno(event.getAdvancement().getKey().getNamespace())) {
+            event.message(null);
+            return;
+        }
+
         Modality modality = modalities.resolve(event.getPlayer());
         Component player = Component.text(event.getPlayer().getName(), NamedTextColor.YELLOW);
         Component title = event.getAdvancement().getDisplay().title();
