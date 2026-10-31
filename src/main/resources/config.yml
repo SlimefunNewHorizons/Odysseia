@@ -4079,7 +4079,7 @@ modalidades:
       - world_the_end
     clasico:
       nombre: '&2Clasico'
-      descripcion: Minecraft de siempre con Terralith, sin maquinas.
+      descripcion: Minecraft survival tradicional, sin maquinas.
       icono: OAK_SAPLING
       comando: clasico
       mundos:
