@@ -27,6 +27,8 @@ import org.bukkit.potion.PotionEffectType;
 import org.bukkit.scheduler.BukkitTask;
 import org.metamechanists.odysseia.Odysseia;
 import org.metamechanists.odysseia.events.boost.ServerBoostManager;
+import org.metamechanists.odysseia.events.calendar.EventOptOutStore;
+import org.metamechanists.odysseia.events.pvp.EventPvPManager;
 
 import java.time.LocalDate;
 import java.time.Month;
@@ -55,6 +57,8 @@ public class SeasonalEventManager implements Listener {
     private final JavaPlugin plugin;
     private final ServerBoostManager boostManager;
     private final String discordWebhookUrl;
+    private final EventOptOutStore optOutStore;
+    private final EventPvPManager pvpManager;
     private final ZoneId zone;
     private final Random random = new Random();
 
@@ -82,9 +86,21 @@ public class SeasonalEventManager implements Listener {
     );
 
     public SeasonalEventManager(JavaPlugin plugin, ServerBoostManager boostManager, String discordWebhookUrl) {
+        this(plugin, boostManager, discordWebhookUrl, null, null);
+    }
+
+    public SeasonalEventManager(
+            JavaPlugin plugin,
+            ServerBoostManager boostManager,
+            String discordWebhookUrl,
+            EventOptOutStore optOutStore,
+            EventPvPManager pvpManager
+    ) {
         this.plugin = plugin;
         this.boostManager = boostManager;
         this.discordWebhookUrl = discordWebhookUrl;
+        this.optOutStore = optOutStore;
+        this.pvpManager = pvpManager;
         this.zone = configuredZone();
     }
 
@@ -157,23 +173,28 @@ public class SeasonalEventManager implements Listener {
                 }
             }
 
-            // Bendición divina a jugadores en línea
+            // Bendición divina a jugadores en línea (respetando opt-out /evento silenciar y torneos PvP)
             for (Player p : Bukkit.getOnlinePlayers()) {
-                p.addPotionEffect(new PotionEffect(PotionEffectType.HASTE, 400, 9, false, false, true)); // Haste X
-                p.addPotionEffect(new PotionEffect(PotionEffectType.STRENGTH, 400, 4, false, false, true)); // Fuerza V
-                p.addPotionEffect(new PotionEffect(PotionEffectType.SPEED, 400, 1, false, false, true)); // Velocidad II
+                if (optOutStore != null && optOutStore.isOptedOut(p.getUniqueId())) continue;
+                if (pvpManager != null && pvpManager.isParticipant(p.getUniqueId())) continue;
+                p.addPotionEffect(new PotionEffect(PotionEffectType.HASTE, 400, 9, true, false, true)); // Haste X sin particulas
+                p.addPotionEffect(new PotionEffect(PotionEffectType.STRENGTH, 400, 4, true, false, true)); // Fuerza V sin particulas
+                p.addPotionEffect(new PotionEffect(PotionEffectType.SPEED, 400, 1, true, false, true)); // Velocidad II sin particulas
             }
 
-            // Anuncio periódico cada 2 horas
+            // Anuncio periódico cada 2 horas (respetando opt-out)
             if (now - lastBirthdayBroadcast >= 7200_000L && !Bukkit.getOnlinePlayers().isEmpty()) {
                 lastBirthdayBroadcast = now;
-                Bukkit.broadcastMessage(ChatColor.translateAlternateColorCodes('&',
-                        "&6&l👑 [CUMPLEAÑOS DEL CREADOR] &e¡Hoy celebramos el natalicio de &6Jack (JackStar)&e, Arquitecto & Creador Soberano de DrakesCraft y Star!"));
-                Bukkit.broadcastMessage(ChatColor.translateAlternateColorCodes('&',
-                        "&a✦ 5X Economía, 5X EXP, 5X Dracmas y Bendición Divina (Haste X + Fuerza V) activos durante todo el día."));
+                String bdayMsg1 = ChatColor.translateAlternateColorCodes('&',
+                        "&6&l👑 [CUMPLEAÑOS DEL CREADOR] &e¡Hoy celebramos el natalicio de &6Jack (JackStar)&e, Arquitecto & Creador de DrakesCraft!");
+                String bdayMsg2 = ChatColor.translateAlternateColorCodes('&',
+                        "&a✦ 5X Economía, 5X EXP, 5X Dracmas y Bendición Divina activos hoy &8· &7Silenciar: &f/evento silenciar");
 
                 for (Player p : Bukkit.getOnlinePlayers()) {
-                    p.playSound(p.getLocation(), Sound.UI_TOAST_CHALLENGE_COMPLETE, 1.0f, 1.0f);
+                    if (optOutStore != null && optOutStore.isOptedOut(p.getUniqueId())) continue;
+                    p.sendMessage(bdayMsg1);
+                    p.sendMessage(bdayMsg2);
+                    p.playSound(p.getLocation(), Sound.UI_TOAST_CHALLENGE_COMPLETE, 0.9f, 1.0f);
                 }
             }
         }

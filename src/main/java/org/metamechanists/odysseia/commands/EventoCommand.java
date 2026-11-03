@@ -12,6 +12,8 @@ import org.bukkit.inventory.ItemStack;
 import org.metamechanists.odysseia.events.OdysseiaEventManager;
 import org.metamechanists.odysseia.events.boost.ServerBoostManager;
 import org.metamechanists.odysseia.events.boxes.StaffBoxRepository;
+import org.metamechanists.odysseia.events.calendar.NovemberCalendarScheduler;
+import org.metamechanists.odysseia.events.calendar.NovemberDaySpec;
 import org.metamechanists.odysseia.events.model.ActiveEvent;
 import org.metamechanists.odysseia.events.pvp.PvPKit;
 import org.metamechanists.odysseia.events.rush.RushEvent;
@@ -38,6 +40,39 @@ public class EventoCommand implements CommandExecutor, TabCompleter {
         }
 
         String sub = args[0].toLowerCase(Locale.ROOT);
+
+        // Subcomandos públicos disponibles para todos los jugadores
+        if (sub.equals("status")) {
+            handleStatus(sender);
+            return true;
+        }
+        if (sub.equals("hoy") || sub.equals("today")) {
+            handleCalendarView(sender, new String[]{"calendario", "hoy"});
+            return true;
+        }
+        if (sub.equals("silenciar") || sub.equals("optout") || sub.equals("mute")) {
+            if (!(sender instanceof Player player)) {
+                sender.sendMessage(ChatColor.RED + "Solo jugadores pueden alternar su modo silencioso de eventos.");
+                return true;
+            }
+            boolean muted = eventManager.getOptOutStore().toggle(player.getUniqueId());
+            if (muted) {
+                player.sendMessage(ChatColor.translateAlternateColorCodes('&',
+                        "&8[&6✦ Eventos&8] &eModo silencioso &cACTIVADO&e. No verás BossBars, sonidos ni efectos festivos de eventos (&f/evento silenciar &epara reactivar)."));
+            } else {
+                player.sendMessage(ChatColor.translateAlternateColorCodes('&',
+                        "&8[&6✦ Eventos&8] &aAvisos y efectos de eventos REACTIVADOS."));
+            }
+            return true;
+        }
+        if ((sub.equals("calendario") || sub.equals("calendar") || sub.equals("noviembre"))
+                && (args.length == 1
+                || args[1].equalsIgnoreCase("hoy")
+                || args[1].equalsIgnoreCase("proximos")
+                || isDayNumber(args[1]))) {
+            handleCalendarView(sender, args);
+            return true;
+        }
 
         // Subcomandos permitidos a jugadores regulares si hay torneo activo
         if (sub.equals("pvp") && args.length >= 2 && (args[1].equalsIgnoreCase("join") || args[1].equalsIgnoreCase("leave"))) {
@@ -77,6 +112,7 @@ public class EventoCommand implements CommandExecutor, TabCompleter {
             case "boss" -> handleBoss(sender, args);
             case "pvp" -> handlePvP(sender, args);
             case "seasonal" -> handleSeasonal(sender, args);
+            case "calendario", "calendar", "noviembre" -> handleCalendarAdmin(sender, args);
             case "stop" -> handleStop(sender, args);
             case "status" -> handleStatus(sender);
             default -> sendHelp(sender);
@@ -427,11 +463,122 @@ public class EventoCommand implements CommandExecutor, TabCompleter {
         }
     }
 
+    private static boolean isDayNumber(String raw) {
+        try {
+            int d = Integer.parseInt(raw);
+            return d >= 1 && d <= 30;
+        } catch (NumberFormatException ignored) {
+            return false;
+        }
+    }
+
+    private void handleCalendarView(CommandSender sender, String[] args) {
+        NovemberCalendarScheduler cal = eventManager.getNovemberCalendar();
+        if (cal == null) {
+            sender.sendMessage(ChatColor.RED + "El calendario de eventos no está disponible.");
+            return;
+        }
+        if (args.length >= 2 && isDayNumber(args[1])) {
+            int d = Integer.parseInt(args[1]);
+            NovemberDaySpec spec = cal.getDaySpec(d);
+            if (spec == null) {
+                sender.sendMessage(ChatColor.RED + "Día fuera de rango (1-30).");
+                return;
+            }
+            sender.sendMessage(ChatColor.translateAlternateColorCodes('&',
+                    "&6&l✦ Evento " + d + " Nov (" + spec.formattedTime() + " CL) &8» "
+                    + (spec.enabled() ? "&a[ACTIVO] " : "&c[PAUSADO] ")
+                    + "&e" + spec.nameEs() + " &7(" + spec.durationMinutes() + "m · " + spec.rewardEs() + ")"));
+            return;
+        }
+
+        NovemberDaySpec today = cal.getTodaySpec();
+        sender.sendMessage(ChatColor.GOLD + "=== CALENDARIO DE EVENTOS NOVIEMBRE 2026 (Hora Chile) ===");
+        if (today != null) {
+            sender.sendMessage(ChatColor.translateAlternateColorCodes('&',
+                    "  &6★ HOY (" + today.day() + " Nov · " + today.formattedTime() + "): &e" + today.nameEs()
+                    + " &7— " + today.rewardEs() + (today.enabled() ? "" : " &c[PAUSADO]")));
+        }
+        List<NovemberDaySpec> next = cal.getUpcomingSpecs(4);
+        for (NovemberDaySpec s : next) {
+            if (today != null && s.day() == today.day()) continue;
+            sender.sendMessage(ChatColor.translateAlternateColorCodes('&',
+                    "  &7• " + s.day() + " Nov (" + s.formattedTime() + "): &f" + s.nameEs()
+                    + " &8[" + s.durationMinutes() + "m]" + (s.enabled() ? "" : " &c[PAUSADO]")));
+        }
+        sender.sendMessage(ChatColor.translateAlternateColorCodes('&',
+                "  &7Calendario completo: &bweb.drakescraft.cl/eventos &8| &7Silenciar avisos: &f/evento silenciar"));
+    }
+
+    private void handleCalendarAdmin(CommandSender sender, String[] args) {
+        NovemberCalendarScheduler cal = eventManager.getNovemberCalendar();
+        if (cal == null) {
+            sender.sendMessage(ChatColor.RED + "El calendario de eventos no está disponible.");
+            return;
+        }
+        if (args.length < 2) {
+            handleCalendarView(sender, args);
+            return;
+        }
+        String action = args[1].toLowerCase(Locale.ROOT);
+        switch (action) {
+            case "reload" -> {
+                cal.reloadConfig();
+                sender.sendMessage(ChatColor.GREEN + "Calendario de noviembre recargado desde config.yml.");
+            }
+            case "run" -> {
+                if (args.length < 3 || !isDayNumber(args[2])) {
+                    sender.sendMessage(ChatColor.YELLOW + "Uso: /evento calendario run <1-30>");
+                    return;
+                }
+                int day = Integer.parseInt(args[2]);
+                NovemberDaySpec spec = cal.getDaySpec(day);
+                boolean ok = cal.executeDaySpec(spec, "admin:" + sender.getName());
+                sender.sendMessage(ok
+                        ? ChatColor.GREEN + "Evento del día " + day + " (" + spec.nameEs() + ") iniciado."
+                        : ChatColor.YELLOW + "No se inició el evento del día " + day + " (revisa /evento status o chunks cargados).");
+            }
+            case "toggle" -> {
+                if (args.length < 4) {
+                    sender.sendMessage(ChatColor.YELLOW + "Uso: /evento calendario toggle <1-30|all> <on|off>");
+                    return;
+                }
+                boolean enable = args[3].equalsIgnoreCase("on") || args[3].equalsIgnoreCase("true");
+                if (args[2].equalsIgnoreCase("all")) {
+                    cal.setMasterEnabled(enable);
+                    sender.sendMessage(ChatColor.GREEN + "Calendario maestro de noviembre: " + (enable ? "ON" : "OFF"));
+                } else if (isDayNumber(args[2])) {
+                    int day = Integer.parseInt(args[2]);
+                    cal.setDayEnabled(day, enable);
+                    sender.sendMessage(ChatColor.GREEN + "Evento día " + day + " de noviembre: " + (enable ? "ON" : "OFF"));
+                } else {
+                    sender.sendMessage(ChatColor.RED + "Día inválido. Usa 1-30 o all.");
+                }
+            }
+            default -> handleCalendarView(sender, args);
+        }
+    }
+
     private void sendHelp(CommandSender sender) {
+        if (!sender.hasPermission("odysseia.evento.admin")) {
+            sender.sendMessage(ChatColor.translateAlternateColorCodes('&', """
+            &6&l═══════ EVENTOS DE DRAKESCRAFT ═══════
+            &e/evento hoy &7- Ver el evento programado de hoy y próximos
+            &e/evento calendario [1-30] &7- Consultar calendario de noviembre
+            &e/evento status &7- Ver eventos activos en este momento
+            &e/evento silenciar &7- Silenciar/activar BossBar, sonidos y efectos
+            &e/evento pvp <join|leave> &7- Unirse o salir si hay torneo PvP activo
+            &7Web oficial: &bweb.drakescraft.cl/eventos
+            &6&l══════════════════════════════════════
+            """));
+            return;
+        }
         sender.sendMessage(ChatColor.translateAlternateColorCodes('&', """
         &6&l═══════ SUITE DE EVENTOS ODYSSEIA ═══════
+        &e/evento hoy | calendario [1-30|run|toggle|reload] &7- Calendario Noviembre
+        &e/evento silenciar &7- Opt-out personal de BossBar/sonidos/efectos
         &e/evento rush <mineria|pesca|cosecha> [min] &7- Maratón cronometrado
-        &e/evento drop [tier] [radio] &7- Caída de suministros celestiales
+        &e/evento drop [tier] [radio] &7- Caída de suministros celestiales seguros
         &e/evento boost <economia|xp|slimefun|dracmas> <mult> [min] &7- Boost global
         &e/evento box <save|list|give|delete> &7- Cajas y plantillas de premios
         &e/evento boss spawn <tipo> &7- Invocar jefe con reparto por daño
@@ -446,7 +593,7 @@ public class EventoCommand implements CommandExecutor, TabCompleter {
     @Override
     public List<String> onTabComplete(CommandSender sender, Command command, String alias, String[] args) {
         if (args.length == 1) {
-            List<String> list = new ArrayList<>(List.of("status"));
+            List<String> list = new ArrayList<>(List.of("hoy", "calendario", "status", "silenciar"));
             if (sender.hasPermission("odysseia.evento.admin")) {
                 list.addAll(List.of("rush", "drop", "boost", "box", "boss", "pvp", "seasonal", "stop"));
             } else if (eventManager.getPvpManager().isActive()) {
@@ -458,6 +605,9 @@ public class EventoCommand implements CommandExecutor, TabCompleter {
         if (args.length == 2) {
             String sub = args[0].toLowerCase(Locale.ROOT);
             return switch (sub) {
+                case "calendario", "calendar", "noviembre" -> sender.hasPermission("odysseia.evento.admin")
+                        ? filter(List.of("hoy", "proximos", "toggle", "run", "reload"), args[1])
+                        : filter(List.of("hoy", "proximos"), args[1]);
                 case "rush" -> filter(List.of("mineria", "pesca", "cosecha"), args[1]);
                 case "drop" -> filter(List.of("comun", "raro", "epico", "legendario"), args[1]);
                 case "boost" -> filter(List.of("economia", "xp", "slimefun", "dracmas"), args[1]);

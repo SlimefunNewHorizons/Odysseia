@@ -4283,3 +4283,70 @@ threadbudget:
   container-pid-ceiling: 512
   realert-step: 25
   realert-cooldown-minutes: 15
+events:
+  november-calendar:
+    enabled: true
+    year: 2026
+    timezone: America/Santiago
+    pre-announce-minutes: 10
+    days:
+      1:
+        enabled: true
+      2:
+        enabled: true
+      3:
+        enabled: true
+      4:
+        enabled: true
+      5:
+        enabled: true
+      6:
+        enabled: true
+      7:
+        enabled: true
+      8:
+        enabled: true
+      9:
+        enabled: true
+      10:
+        enabled: true
+      11:
+        enabled: true
+      12:
+        enabled: true
+      13:
+        enabled: true
+      14:
+        enabled: true
+      15:
+        enabled: true
+      16:
+        enabled: true
+      17:
+        enabled: true
+      18:
+        enabled: true
+      19:
+        enabled: true
+      20:
+        enabled: true
+      21:
+        enabled: true
+      22:
+        enabled: true
+      23:
+        enabled: true
+      24:
+        enabled: true
+      25:
+        enabled: true
+      26:
+        enabled: true
+      27:
+        enabled: true
+      28:
+        enabled: true
+      29:
+        enabled: true
+      30:
+        enabled: true

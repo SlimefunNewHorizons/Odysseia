@@ -1,6 +1,8 @@
 package org.metamechanists.odysseia.events.rush;
 
+import org.bukkit.GameMode;
 import org.bukkit.Material;
+import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.block.data.Ageable;
 import org.bukkit.block.data.BlockData;
@@ -10,8 +12,11 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
+import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.player.PlayerFishEvent;
 import org.metamechanists.odysseia.events.OdysseiaEventManager;
+
+import java.util.Locale;
 
 public class RushListener implements Listener {
 
@@ -21,14 +26,35 @@ public class RushListener implements Listener {
         this.eventManager = eventManager;
     }
 
+    private static boolean isEligiblePlayer(Player player) {
+        if (player == null || player.getGameMode() != GameMode.SURVIVAL) return false;
+        World w = player.getWorld();
+        if (w == null) return false;
+        String name = w.getName().toLowerCase(Locale.ROOT);
+        return !name.contains("lab") && !name.equals("lobby");
+    }
+
+    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
+    public void onBlockPlace(BlockPlaceEvent event) {
+        if (!(eventManager.getCurrentRush() instanceof RushEvent rush)) return;
+        if (rush.getRushType() == RushEvent.RushType.MINING) {
+            Block b = event.getBlockPlaced();
+            if (getMiningPoints(b.getType()) > 0) {
+                rush.markPlacedBlock(b);
+            }
+        }
+    }
+
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onBlockBreak(BlockBreakEvent event) {
         if (!(eventManager.getCurrentRush() instanceof RushEvent rush)) return;
         Player player = event.getPlayer();
+        if (!isEligiblePlayer(player)) return;
         Block block = event.getBlock();
 
         // Check Rush Type
         if (rush.getRushType() == RushEvent.RushType.MINING) {
+            if (rush.isPlacedBlock(block)) return;
             long points = getMiningPoints(block.getType());
             if (points > 0) {
                 rush.addScore(player, points);
@@ -45,6 +71,7 @@ public class RushListener implements Listener {
     public void onFish(PlayerFishEvent event) {
         if (!(eventManager.getCurrentRush() instanceof RushEvent rush)) return;
         if (rush.getRushType() != RushEvent.RushType.FISHING) return;
+        if (!isEligiblePlayer(event.getPlayer())) return;
 
         if (event.getState() == PlayerFishEvent.State.CAUGHT_FISH) {
             rush.addScore(event.getPlayer(), 5);

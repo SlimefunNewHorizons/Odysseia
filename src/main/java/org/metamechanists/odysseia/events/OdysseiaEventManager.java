@@ -8,6 +8,9 @@ import org.metamechanists.odysseia.events.boost.BoostListener;
 import org.metamechanists.odysseia.events.boost.ServerBoostManager;
 import org.metamechanists.odysseia.events.boss.EventBossManager;
 import org.metamechanists.odysseia.events.boxes.StaffBoxRepository;
+import org.metamechanists.odysseia.events.calendar.EventOptOutStore;
+import org.metamechanists.odysseia.events.calendar.EventTelemetryLogger;
+import org.metamechanists.odysseia.events.calendar.NovemberCalendarScheduler;
 import org.metamechanists.odysseia.events.drop.SupplyDropEvent;
 import org.metamechanists.odysseia.events.model.ActiveEvent;
 import org.metamechanists.odysseia.events.pvp.EventPvPManager;
@@ -31,11 +34,14 @@ public class OdysseiaEventManager {
     private final JavaPlugin plugin;
     @Getter private final String discordWebhookUrl;
 
+    @Getter private final EventOptOutStore optOutStore;
+    @Getter private final EventTelemetryLogger telemetryLogger;
     @Getter private final ServerBoostManager boostManager;
     @Getter private final StaffBoxRepository boxRepository;
     @Getter private final EventBossManager bossManager;
     @Getter private final EventPvPManager pvpManager;
     @Getter private final SeasonalEventManager seasonalManager;
+    @Getter private final NovemberCalendarScheduler novemberCalendar;
 
     @Getter private RushEvent currentRush;
     @Getter private SupplyDropEvent currentDrop;
@@ -52,7 +58,9 @@ public class OdysseiaEventManager {
         }
         this.discordWebhookUrl = url;
 
-        this.boostManager = new ServerBoostManager(plugin, discordWebhookUrl);
+        this.optOutStore = new EventOptOutStore(plugin);
+        this.telemetryLogger = new EventTelemetryLogger(plugin);
+        this.boostManager = new ServerBoostManager(plugin, discordWebhookUrl, optOutStore, telemetryLogger);
 
         StaffBoxRepository boxRepo = null;
         try {
@@ -65,11 +73,13 @@ public class OdysseiaEventManager {
 
         this.bossManager = new EventBossManager(plugin, discordWebhookUrl);
         this.pvpManager = new EventPvPManager(plugin, discordWebhookUrl);
-        this.seasonalManager = new SeasonalEventManager(plugin, boostManager, discordWebhookUrl);
+        this.seasonalManager = new SeasonalEventManager(plugin, boostManager, discordWebhookUrl, optOutStore, pvpManager);
+        this.novemberCalendar = new NovemberCalendarScheduler(plugin, this, telemetryLogger, optOutStore);
 
         registerListeners();
         startTickTask();
         seasonalManager.start();
+        novemberCalendar.start();
 
         plugin.getLogger().info("[OdysseiaEvents] Suite de Eventos inicializada correctamente.");
     }
@@ -111,7 +121,7 @@ public class OdysseiaEventManager {
         if (currentRush != null && currentRush.isActive()) {
             return false;
         }
-        this.currentRush = new RushEvent(plugin, type, durationSeconds, discordWebhookUrl);
+        this.currentRush = new RushEvent(plugin, type, durationSeconds, discordWebhookUrl, optOutStore, telemetryLogger);
         this.currentRush.start();
         return true;
     }
@@ -127,8 +137,12 @@ public class OdysseiaEventManager {
         if (currentDrop != null && currentDrop.isActive()) {
             return false;
         }
-        this.currentDrop = new SupplyDropEvent(plugin, lootTier, radius, discordWebhookUrl);
-        this.currentDrop.start();
+        SupplyDropEvent candidate = new SupplyDropEvent(plugin, 900L, discordWebhookUrl, lootTier, radius, optOutStore, telemetryLogger);
+        candidate.start();
+        if (!candidate.isActive()) {
+            return false;
+        }
+        this.currentDrop = candidate;
         return true;
     }
 
@@ -167,6 +181,9 @@ public class OdysseiaEventManager {
         }
         if (seasonalManager != null) {
             seasonalManager.shutdown();
+        }
+        if (novemberCalendar != null) {
+            novemberCalendar.shutdown();
         }
     }
 }

@@ -9,6 +9,8 @@ import org.bukkit.boss.BarStyle;
 import org.bukkit.boss.BossBar;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.metamechanists.odysseia.events.calendar.EventOptOutStore;
+import org.metamechanists.odysseia.events.calendar.EventTelemetryLogger;
 import org.metamechanists.odysseia.events.model.ActiveEvent;
 import org.metamechanists.odysseia.events.model.EventType;
 import org.metamechanists.odysseia.utils.WebhookSender;
@@ -60,14 +62,30 @@ public class ServerBoostManager {
         private final BossBar bossBar;
         private final JavaPlugin plugin;
         private final String webhookUrl;
+        private final EventOptOutStore optOutStore;
+        private final EventTelemetryLogger telemetry;
 
         public ActiveBoost(JavaPlugin plugin, BoostCategory category, double multiplier, long durationSeconds, String webhookUrl) {
+            this(plugin, category, multiplier, durationSeconds, webhookUrl, null, null);
+        }
+
+        public ActiveBoost(
+                JavaPlugin plugin,
+                BoostCategory category,
+                double multiplier,
+                long durationSeconds,
+                String webhookUrl,
+                EventOptOutStore optOutStore,
+                EventTelemetryLogger telemetry
+        ) {
             this.plugin = plugin;
             this.category = category;
             this.multiplier = multiplier;
             this.durationSeconds = durationSeconds;
             this.remainingSeconds = durationSeconds;
             this.webhookUrl = webhookUrl;
+            this.optOutStore = optOutStore;
+            this.telemetry = telemetry;
             this.bossBar = Bukkit.createBossBar(
                     formatTitle(),
                     category.getBarColor(),
@@ -109,16 +127,15 @@ public class ServerBoostManager {
             this.active = true;
             bossBar.setProgress(1.0);
             bossBar.setVisible(true);
+            String startMsg = ChatColor.translateAlternateColorCodes('&',
+                    "&8[&e⚡ Boost&8] &eBoost Global &a&l" + String.format(Locale.ROOT, "%.1fx", multiplier)
+                    + " " + category.getDisplayName() + " &f(" + (durationSeconds / 60) + " min) &8· &7Silenciar: &f/evento silenciar");
             for (Player p : Bukkit.getOnlinePlayers()) {
+                if (optOutStore != null && optOutStore.isOptedOut(p.getUniqueId())) continue;
                 bossBar.addPlayer(p);
-                p.playSound(p.getLocation(), Sound.UI_TOAST_CHALLENGE_COMPLETE, 1.0f, 1.2f);
+                p.sendMessage(startMsg);
+                p.playSound(p.getLocation(), Sound.UI_TOAST_CHALLENGE_COMPLETE, 0.8f, 1.2f);
             }
-
-            Bukkit.broadcastMessage(ChatColor.translateAlternateColorCodes('&',
-                    "\n&e⚡ &6&lDRAKES BOOSTER &8» &f¡Se ha activado un &eBoost Global&f!\n" +
-                    "  &7• Multiplicador: &a&l" + String.format(Locale.ROOT, "%.1fx", multiplier) + " en " + category.getDisplayName() + "\n" +
-                    "  &7• Duración: &b" + (durationSeconds / 60) + " minutos\n" +
-                    "  &7• ¡Aprovecha la bonificación en todo el servidor!\n"));
 
             sendDiscordWebhook();
         }
@@ -152,7 +169,12 @@ public class ServerBoostManager {
             remainingSeconds--;
 
             for (Player p : Bukkit.getOnlinePlayers()) {
-                if (!bossBar.getPlayers().contains(p)) {
+                boolean optedOut = optOutStore != null && optOutStore.isOptedOut(p.getUniqueId());
+                if (optedOut) {
+                    if (bossBar.getPlayers().contains(p)) {
+                        bossBar.removePlayer(p);
+                    }
+                } else if (!bossBar.getPlayers().contains(p)) {
                     bossBar.addPlayer(p);
                 }
             }
@@ -174,10 +196,17 @@ public class ServerBoostManager {
             bossBar.removeAll();
             bossBar.setVisible(false);
 
-            Bukkit.broadcastMessage(ChatColor.translateAlternateColorCodes('&',
-                    "&e⚡ &6&lDRAKES BOOSTER &8» &7El Boost Global de &e" + category.getDisplayName() + " &7ha finalizado."));
+            String endMsg = ChatColor.translateAlternateColorCodes('&',
+                    "&8[&e⚡ Boost&8] &7El Boost Global de &e" + category.getDisplayName() + " &7ha finalizado.");
             for (Player p : Bukkit.getOnlinePlayers()) {
-                p.playSound(p.getLocation(), Sound.BLOCK_BEACON_DEACTIVATE, 0.8f, 1.0f);
+                if (optOutStore != null && optOutStore.isOptedOut(p.getUniqueId())) continue;
+                p.sendMessage(endMsg);
+                p.playSound(p.getLocation(), Sound.BLOCK_BEACON_DEACTIVATE, 0.7f, 1.0f);
+            }
+            if (telemetry != null) {
+                telemetry.record(0, "boost-" + category.name().toLowerCase(Locale.ROOT),
+                        "GLOBAL_BOOST", "FINISHED", Bukkit.getOnlinePlayers().size(),
+                        "Finalizado boost " + category.getDisplayName() + " " + multiplier + "x");
             }
         }
 
@@ -194,11 +223,19 @@ public class ServerBoostManager {
 
     private final JavaPlugin plugin;
     private final String webhookUrl;
+    private final EventOptOutStore optOutStore;
+    private final EventTelemetryLogger telemetry;
     private final ConcurrentMap<BoostCategory, ActiveBoost> activeBoosts = new ConcurrentHashMap<>();
 
     public ServerBoostManager(JavaPlugin plugin, String webhookUrl) {
+        this(plugin, webhookUrl, null, null);
+    }
+
+    public ServerBoostManager(JavaPlugin plugin, String webhookUrl, EventOptOutStore optOutStore, EventTelemetryLogger telemetry) {
         this.plugin = plugin;
         this.webhookUrl = webhookUrl;
+        this.optOutStore = optOutStore;
+        this.telemetry = telemetry;
     }
 
     public ActiveBoost startBoost(BoostCategory category, double multiplier, long durationSeconds) {
@@ -209,7 +246,7 @@ public class ServerBoostManager {
             existing.stop();
         }
 
-        ActiveBoost boost = new ActiveBoost(plugin, category, multiplier, durationSeconds, webhookUrl);
+        ActiveBoost boost = new ActiveBoost(plugin, category, multiplier, durationSeconds, webhookUrl, optOutStore, telemetry);
         activeBoosts.put(category, boost);
         boost.start();
         return boost;

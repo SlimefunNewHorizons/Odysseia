@@ -9,8 +9,11 @@ import org.bukkit.boss.BarColor;
 import org.bukkit.boss.BarStyle;
 import org.bukkit.boss.BossBar;
 import org.bukkit.entity.Player;
+import org.bukkit.block.Block;
 import org.bukkit.plugin.RegisteredServiceProvider;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.metamechanists.odysseia.events.calendar.EventOptOutStore;
+import org.metamechanists.odysseia.events.calendar.EventTelemetryLogger;
 import org.metamechanists.odysseia.events.model.ActiveEvent;
 import org.metamechanists.odysseia.events.model.EventType;
 import org.metamechanists.odysseia.utils.WebhookSender;
@@ -20,6 +23,9 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 public class RushEvent implements ActiveEvent {
+
+    public static final long MIN_SCORE_FOR_REWARD = 10L;
+    private static final int MAX_TRACKED_PLACED_BLOCKS = 8192;
 
     public enum RushType {
         MINING(EventType.RUSH_MINING, "Minería", BarColor.YELLOW, "⛏️"),
@@ -47,15 +53,44 @@ public class RushEvent implements ActiveEvent {
 
     private final Map<UUID, Long> scores = new ConcurrentHashMap<>();
     private final Map<UUID, String> playerNames = new ConcurrentHashMap<>();
+    private final Set<String> placedBlockKeys = ConcurrentHashMap.newKeySet();
     private BossBar bossBar;
     private final String discordWebhookUrl;
+    private final EventOptOutStore optOutStore;
+    private final EventTelemetryLogger telemetry;
 
     public RushEvent(JavaPlugin plugin, RushType rushType, long durationSeconds, String discordWebhookUrl) {
+        this(plugin, rushType, durationSeconds, discordWebhookUrl, null, null);
+    }
+
+    public RushEvent(
+            JavaPlugin plugin,
+            RushType rushType,
+            long durationSeconds,
+            String discordWebhookUrl,
+            EventOptOutStore optOutStore,
+            EventTelemetryLogger telemetry
+    ) {
         this.plugin = plugin;
         this.rushType = rushType;
         this.durationSeconds = durationSeconds;
         this.remainingSeconds = durationSeconds;
         this.discordWebhookUrl = discordWebhookUrl;
+        this.optOutStore = optOutStore;
+        this.telemetry = telemetry;
+    }
+
+    public void markPlacedBlock(Block block) {
+        if (!active || block == null || placedBlockKeys.size() >= MAX_TRACKED_PLACED_BLOCKS) return;
+        placedBlockKeys.add(blockKey(block));
+    }
+
+    public boolean isPlacedBlock(Block block) {
+        return block != null && placedBlockKeys.contains(blockKey(block));
+    }
+
+    private static String blockKey(Block b) {
+        return b.getWorld().getName() + ":" + b.getX() + ":" + b.getY() + ":" + b.getZ();
     }
 
     @Override
@@ -73,17 +108,15 @@ public class RushEvent implements ActiveEvent {
         );
         this.bossBar.setProgress(1.0);
 
+        String startLine = ChatColor.translateAlternateColorCodes('&',
+                "&8[&6" + rushType.getIcon() + " Evento&8] &e¡Inicia &6" + rushType.getDisplayName()
+                + "&e! &7(" + formatTime(durationSeconds) + " · Podio Top 3: 10k/6k/3k ₯ · &f/evento silenciar&7)");
         for (Player player : Bukkit.getOnlinePlayers()) {
+            if (optOutStore != null && optOutStore.isOptedOut(player.getUniqueId())) continue;
             this.bossBar.addPlayer(player);
-            player.playSound(player.getLocation(), Sound.UI_TOAST_CHALLENGE_COMPLETE, 1.0f, 1.2f);
+            player.sendMessage(startLine);
+            player.playSound(player.getLocation(), Sound.UI_TOAST_CHALLENGE_COMPLETE, 0.8f, 1.2f);
         }
-
-        String broadcastMsg = ChatColor.translateAlternateColorCodes('&',
-                "&6&l▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬\n" +
-                "  " + rushType.getIcon() + " &e&l¡EVENTO FLASH ACTIVADO: " + rushType.getDisplayName().toUpperCase() + "! &r\n" +
-                "  &7Duración: &f" + formatTime(durationSeconds) + " &8| &a¡Compite por el Top 3 y gana premios!\n" +
-                "&6&l▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬");
-        Bukkit.broadcastMessage(broadcastMsg);
 
         // Discord announcement
         sendDiscordEmbed("🚀 ¡Ha comenzado el Evento Flash: " + rushType.getDisplayName() + "!",
@@ -108,9 +141,14 @@ public class RushEvent implements ActiveEvent {
         if (!active) return;
         remainingSeconds--;
 
-        // Keep boss bar players synced
+        // Keep boss bar players synced (respetando opt-out)
         for (Player p : Bukkit.getOnlinePlayers()) {
-            if (!bossBar.getPlayers().contains(p)) {
+            boolean optedOut = optOutStore != null && optOutStore.isOptedOut(p.getUniqueId());
+            if (optedOut) {
+                if (bossBar.getPlayers().contains(p)) {
+                    bossBar.removePlayer(p);
+                }
+            } else if (!bossBar.getPlayers().contains(p)) {
                 bossBar.addPlayer(p);
             }
         }
@@ -157,39 +195,51 @@ public class RushEvent implements ActiveEvent {
             bossBar.removeAll();
         }
 
+        placedBlockKeys.clear();
         List<Map.Entry<UUID, Long>> top = getTopScores(3);
-
-        StringBuilder sb = new StringBuilder();
-        sb.append("&6&l▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬\n");
-        sb.append("  ").append(rushType.getIcon()).append(" &e&l¡FIN DEL EVENTO: ").append(rushType.getDisplayName().toUpperCase()).append("!\n");
-        sb.append("  &7Ganadores oficiales del Olimpo:\n\n");
-
         Economy economy = getEconomy();
+        StringBuilder podiumSummary = new StringBuilder();
 
         if (top.isEmpty()) {
-            sb.append("  &cNo hubo participantes con puntuación en esta edición.\n");
+            podiumSummary.append("&7Sin puntuaciones registradas.");
         } else {
             for (int i = 0; i < top.size(); i++) {
                 Map.Entry<UUID, Long> entry = top.get(i);
                 String name = playerNames.getOrDefault(entry.getKey(), "Jugador");
                 long score = entry.getValue();
-                double moneyReward = (i == 0) ? 15000.0 : ((i == 1) ? 8000.0 : 4000.0);
+                double moneyReward = (score >= MIN_SCORE_FOR_REWARD)
+                        ? ((i == 0) ? 10000.0 : ((i == 1) ? 6000.0 : 3000.0))
+                        : 0.0;
 
-                ChatColor medal = (i == 0) ? ChatColor.GOLD : ((i == 1) ? ChatColor.GRAY : ChatColor.getByChar('6'));
-                sb.append("  ").append(medal).append("&l#").append(i + 1).append(" &f").append(name)
-                  .append(" &7— &e").append(score).append(" pts &8(&a+$").append((int) moneyReward).append("&8)\n");
+                if (i > 0) podiumSummary.append(" &8· ");
+                podiumSummary.append("&e#").append(i + 1).append(" &f").append(name)
+                        .append(" &7(").append(score).append(" pts")
+                        .append(moneyReward > 0 ? ", &a+" + (int) moneyReward + " ₯&7)" : "&7)");
 
                 Player p = Bukkit.getPlayer(entry.getKey());
-                if (economy != null && p != null && p.isOnline()) {
+                if (moneyReward > 0 && economy != null && p != null && p.isOnline()
+                        && !p.getWorld().getName().toLowerCase(Locale.ROOT).contains("lab")) {
                     economy.depositPlayer(p, moneyReward);
-                    p.playSound(p.getLocation(), Sound.ENTITY_PLAYER_LEVELUP, 1.0f, 1.0f);
+                    if (optOutStore == null || !optOutStore.isOptedOut(p.getUniqueId())) {
+                        p.playSound(p.getLocation(), Sound.ENTITY_PLAYER_LEVELUP, 0.9f, 1.0f);
+                    }
                     p.sendMessage(ChatColor.translateAlternateColorCodes('&',
-                            "&a&l[PREMIO] &7Has recibido &a$" + (int) moneyReward + " &7por quedar en el podio!"));
+                            "&a&l[PREMIO] &7Has recibido &a" + (int) moneyReward + " ₯ &7por tu podio en " + rushType.getDisplayName() + "!"));
                 }
             }
         }
-        sb.append("&6&l▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬");
-        Bukkit.broadcastMessage(ChatColor.translateAlternateColorCodes('&', sb.toString()));
+
+        String closeLine = ChatColor.translateAlternateColorCodes('&',
+                "&8[&6" + rushType.getIcon() + " Cierre&8] &eFin de &6" + rushType.getDisplayName() + " &8» " + podiumSummary);
+        for (Player p : Bukkit.getOnlinePlayers()) {
+            if (optOutStore != null && optOutStore.isOptedOut(p.getUniqueId())) continue;
+            p.sendMessage(closeLine);
+        }
+
+        if (telemetry != null) {
+            telemetry.record(0, "rush-" + rushType.name().toLowerCase(Locale.ROOT),
+                    getEventType().name(), "FINISHED", scores.size(), ChatColor.stripColor(closeLine));
+        }
 
         // Discord results
         StringBuilder discordDesc = new StringBuilder();

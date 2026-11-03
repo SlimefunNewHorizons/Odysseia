@@ -20,10 +20,9 @@ softdepend:
 
 commands:
   evento:
-    description: Suite de Eventos de Odysseia (Rush, Drops, Boosts, Cajas, Bosses, PvP).
+    description: Suite de Eventos de Odysseia y Calendario Diario (/evento hoy, /evento silenciar).
     aliases: [eventos, odysseiaevento]
-    permission: odysseia.evento.admin
-    usage: /evento <rush|drop|boost|box|boss|pvp|stop|status>
+    usage: /evento <hoy|calendario|silenciar|status|pvp|rush|drop|boost|stop>
   survival:
     description: Te lleva a la modalidad principal (Survival).
     aliases: [principal, polis, main]

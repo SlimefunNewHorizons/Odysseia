@@ -16,6 +16,8 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
+import org.metamechanists.odysseia.events.calendar.EventOptOutStore;
+import org.metamechanists.odysseia.events.calendar.EventTelemetryLogger;
 import org.metamechanists.odysseia.events.model.ActiveEvent;
 import org.metamechanists.odysseia.events.model.EventType;
 import org.metamechanists.odysseia.utils.WebhookSender;
@@ -37,21 +39,38 @@ public class SupplyDropEvent implements ActiveEvent, Listener {
 
     private final String lootTier;
     private final int searchRadius;
+    private final EventOptOutStore optOutStore;
+    private final EventTelemetryLogger telemetry;
+    private boolean claimed = false;
 
     public SupplyDropEvent(JavaPlugin plugin, String lootTier, int radius, String discordWebhookUrl) {
-        this(plugin, 900L, discordWebhookUrl, lootTier, radius);
+        this(plugin, 900L, discordWebhookUrl, lootTier, radius, null, null);
     }
 
     public SupplyDropEvent(JavaPlugin plugin, long durationSeconds, String discordWebhookUrl) {
-        this(plugin, durationSeconds, discordWebhookUrl, "epico", 1000);
+        this(plugin, durationSeconds, discordWebhookUrl, "epico", 1000, null, null);
     }
 
     public SupplyDropEvent(JavaPlugin plugin, long durationSeconds, String discordWebhookUrl, String lootTier, int radius) {
+        this(plugin, durationSeconds, discordWebhookUrl, lootTier, radius, null, null);
+    }
+
+    public SupplyDropEvent(
+            JavaPlugin plugin,
+            long durationSeconds,
+            String discordWebhookUrl,
+            String lootTier,
+            int radius,
+            EventOptOutStore optOutStore,
+            EventTelemetryLogger telemetry
+    ) {
         this.plugin = plugin;
         this.remainingSeconds = durationSeconds;
         this.discordWebhookUrl = discordWebhookUrl;
-        this.lootTier = lootTier;
+        this.lootTier = lootTier != null ? lootTier : "epico";
         this.searchRadius = radius;
+        this.optOutStore = optOutStore;
+        this.telemetry = telemetry;
 
         try {
             psRegionMethod = Class.forName("dev.espi.protectionstones.PSRegion")
@@ -68,31 +87,60 @@ public class SupplyDropEvent implements ActiveEvent, Listener {
 
     @Override
     public void start() {
-        this.active = true;
         World world = Bukkit.getWorld("world");
         if (world == null) {
-            world = Bukkit.getWorlds().get(0);
+            for (World w : Bukkit.getWorlds()) {
+                if (w.getEnvironment() == World.Environment.NORMAL
+                        && !w.getName().toLowerCase(Locale.ROOT).contains("lab")
+                        && !w.getName().equalsIgnoreCase("lobby")) {
+                    world = w;
+                    break;
+                }
+            }
+        }
+        if (world == null) {
+            this.active = false;
+            return;
         }
 
-        // Find wilderness location outside claims
+        // Seleccionar UNICAMENTE de chunks ya cargados (0 carga sincrona en Server thread)
+        // y colocar en y+1 solo si es AIRE sobre bloque solido y fuera de claims/spawn.
+        Chunk[] loaded = world.getLoadedChunks();
+        Location spawn = world.getSpawnLocation();
         Location target = null;
-        for (int i = 0; i < 20; i++) {
-            int x = ThreadLocalRandom.current().nextInt(-3000, 3000);
-            int z = ThreadLocalRandom.current().nextInt(-3000, 3000);
-            int y = world.getHighestBlockYAt(x, z);
-            Location candidate = new Location(world, x, y, z);
+        if (loaded.length > 0) {
+            for (int attempt = 0; attempt < 40; attempt++) {
+                Chunk ch = loaded[ThreadLocalRandom.current().nextInt(loaded.length)];
+                int x = (ch.getX() << 4) + ThreadLocalRandom.current().nextInt(2, 14);
+                int z = (ch.getZ() << 4) + ThreadLocalRandom.current().nextInt(2, 14);
+                double dx = x - spawn.getX();
+                double dz = z - spawn.getZ();
+                if ((dx * dx + dz * dz) < (150.0 * 150.0)) continue;
 
-            if (isClaimed(candidate)) continue;
-            if (candidate.getBlock().isLiquid()) continue;
+                int groundY = world.getHighestBlockYAt(x, z);
+                Block ground = world.getBlockAt(x, groundY, z);
+                Block above = world.getBlockAt(x, groundY + 1, z);
+                if (!ground.getType().isSolid() || ground.isLiquid() || !above.getType().isAir()) continue;
 
-            target = candidate;
-            break;
+                Location candidate = above.getLocation();
+                if (isClaimed(candidate) || isClaimed(ground.getLocation()) || isWorldGuardProtected(candidate)) continue;
+
+                target = candidate;
+                break;
+            }
         }
 
         if (target == null) {
-            target = new Location(world, 1000, world.getHighestBlockYAt(1000, 1000), 1000);
+            this.active = false;
+            if (telemetry != null) {
+                telemetry.record(0, "supply-drop-" + lootTier, "SUPPLY_DROP", "SKIPPED",
+                        Bukkit.getOnlinePlayers().size(), "Sin chunk salvaje cargado disponible para colocar cofre seguro");
+            }
+            return;
         }
 
+        this.active = true;
+        this.claimed = false;
         this.chestLocation = target.clone();
         Block block = chestLocation.getBlock();
         block.setType(Material.CHEST);
@@ -110,12 +158,12 @@ public class SupplyDropEvent implements ActiveEvent, Listener {
         int approxZ = ((chestLocation.getBlockZ() + 50) / 100) * 100;
 
         String msg = ChatColor.translateAlternateColorCodes('&',
-                "&6&l▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬\n" +
-                "  📦 &e&l¡METEORITO DE SUMINISTROS HA CAÍDO! &r\n" +
-                "  &7Coordenadas aproximadas: &fX: ~" + approxX + ", Z: ~" + approxZ + " &8(Mundo: " + world.getName() + ")\n" +
-                "  &cEl cofre está protegido por guardianes del Olimpo. ¡Derrótalos para abrirlo!\n" +
-                "&6&l▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬");
-        Bukkit.broadcastMessage(msg);
+                "&8[&6📦 Evento&8] &e¡Suministros del Olimpo (&6" + lootTier + "&e) en &fX:~" + approxX
+                + " Z:~" + approxZ + " &7(" + world.getName() + ")! Derrota a los guardianes &8· &f/evento silenciar");
+        for (Player p : Bukkit.getOnlinePlayers()) {
+            if (optOutStore != null && optOutStore.isOptedOut(p.getUniqueId())) continue;
+            p.sendMessage(msg);
+        }
 
         sendDiscordEmbed("☄️ ¡Ha caído un Meteorito de Suministros!",
                 "**Mundo:** `" + world.getName() + "`\n" +
@@ -126,31 +174,41 @@ public class SupplyDropEvent implements ActiveEvent, Listener {
 
     private void populateChest(Chest chest) {
         chest.getInventory().clear();
-        chest.getInventory().addItem(
-                new ItemStack(Material.ENCHANTED_GOLDEN_APPLE, 3),
-                new ItemStack(Material.NETHERITE_INGOT, 2),
-                new ItemStack(Material.DIAMOND_BLOCK, 4),
-                new ItemStack(Material.TOTEM_OF_UNDYING, 1),
-                new ItemStack(Material.EXPERIENCE_BOTTLE, 32),
-                new ItemStack(Material.GOLDEN_CARROT, 64)
-        );
+        if ("legendario".equalsIgnoreCase(lootTier)) {
+            chest.getInventory().addItem(
+                    new ItemStack(Material.ENCHANTED_GOLDEN_APPLE, 4),
+                    new ItemStack(Material.NETHERITE_INGOT, 3),
+                    new ItemStack(Material.DIAMOND_BLOCK, 6),
+                    new ItemStack(Material.TOTEM_OF_UNDYING, 2),
+                    new ItemStack(Material.EXPERIENCE_BOTTLE, 64),
+                    new ItemStack(Material.GOLDEN_CARROT, 64)
+            );
+        } else {
+            chest.getInventory().addItem(
+                    new ItemStack(Material.ENCHANTED_GOLDEN_APPLE, 2),
+                    new ItemStack(Material.NETHERITE_INGOT, 1),
+                    new ItemStack(Material.DIAMOND_BLOCK, 3),
+                    new ItemStack(Material.TOTEM_OF_UNDYING, 1),
+                    new ItemStack(Material.EXPERIENCE_BOTTLE, 32),
+                    new ItemStack(Material.GOLDEN_CARROT, 64)
+            );
+        }
     }
 
     private void spawnVisualImpact(Location loc) {
         World w = loc.getWorld();
         if (w == null) return;
 
-        w.strikeLightningEffect(loc);
-        w.spawnParticle(Particle.EXPLOSION_EMITTER, loc, 3);
-        w.spawnParticle(Particle.FLAME, loc, 50, 1, 1, 1, 0.1);
-        w.playSound(loc, Sound.ENTITY_GENERIC_EXPLODE, 2.0f, 0.8f);
+        // Sin EXPLOSION_EMITTER ni particulas cegadoras: solo chispas cortas y cohete suave
+        w.spawnParticle(Particle.END_ROD, loc.clone().add(0.5, 1.0, 0.5), 24, 0.4, 0.8, 0.4, 0.03);
+        w.playSound(loc, Sound.BLOCK_BEACON_ACTIVATE, 1.4f, 1.1f);
 
-        Firework fw = (Firework) w.spawnEntity(loc.clone().add(0, 2, 0), EntityType.FIREWORK_ROCKET);
+        Firework fw = (Firework) w.spawnEntity(loc.clone().add(0.5, 2.0, 0.5), EntityType.FIREWORK_ROCKET);
         var meta = fw.getFireworkMeta();
         meta.addEffect(FireworkEffect.builder()
-                .withColor(Color.ORANGE, Color.YELLOW, Color.RED)
+                .withColor(Color.ORANGE, Color.YELLOW)
                 .withFade(Color.WHITE)
-                .with(FireworkEffect.Type.BALL_LARGE)
+                .with(FireworkEffect.Type.BALL)
                 .build());
         meta.setPower(1);
         fw.setFireworkMeta(meta);
@@ -181,6 +239,23 @@ public class SupplyDropEvent implements ActiveEvent, Listener {
         }
     }
 
+    private boolean isWorldGuardProtected(Location loc) {
+        try {
+            Class<?> wgClass = Class.forName("com.sk89q.worldguard.WorldGuard");
+            Object wg = wgClass.getMethod("getInstance").invoke(null);
+            Object platform = wgClass.getMethod("getPlatform").invoke(wg);
+            Object rc = platform.getClass().getMethod("getRegionContainer").invoke(platform);
+            Object query = rc.getClass().getMethod("createQuery").invoke(rc);
+            Class<?> adapter = Class.forName("com.sk89q.worldedit.bukkit.BukkitAdapter");
+            Object weLoc = adapter.getMethod("adapt", Location.class).invoke(null, loc);
+            Object set = query.getClass().getMethod("getApplicableRegions", weLoc.getClass()).invoke(query, weLoc);
+            int size = (int) set.getClass().getMethod("size").invoke(set);
+            return size > 0;
+        } catch (Throwable ignored) {
+            return false;
+        }
+    }
+
     @EventHandler(priority = EventPriority.LOWEST)
     public void onChestBreak(BlockBreakEvent event) {
         if (!active || chestLocation == null) return;
@@ -204,12 +279,14 @@ public class SupplyDropEvent implements ActiveEvent, Listener {
         }
 
         // Opened successfully!
+        this.claimed = true;
         Player player = event.getPlayer();
-        Bukkit.broadcastMessage(ChatColor.translateAlternateColorCodes('&',
-                "&6&l▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬\n" +
-                "  🎉 &a&l¡BOTÍN RECLAMADO! &r\n" +
-                "  &f" + player.getName() + " &7ha abierto y reclamado el &eCofre del Olimpo&7!\n" +
-                "&6&l▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬"));
+        String closeMsg = ChatColor.translateAlternateColorCodes('&',
+                "&8[&6📦 Cierre&8] &f" + player.getName() + " &7ha conquistado y reclamado el &eCofre del Olimpo&7.");
+        for (Player p : Bukkit.getOnlinePlayers()) {
+            if (optOutStore != null && optOutStore.isOptedOut(p.getUniqueId())) continue;
+            p.sendMessage(closeMsg);
+        }
 
         sendDiscordEmbed("🎉 ¡Suministros Reclamados!",
                 "El aventurero **" + player.getName() + "** ha conquistado a los guardianes y reclamado el Cofre del Olimpo.",
@@ -225,10 +302,8 @@ public class SupplyDropEvent implements ActiveEvent, Listener {
             if (guardianUuids.isEmpty()) {
                 unlocked = true;
                 if (chestLocation != null && chestLocation.getWorld() != null) {
-                    chestLocation.getWorld().playSound(chestLocation, Sound.UI_TOAST_CHALLENGE_COMPLETE, 1.5f, 1.2f);
+                    chestLocation.getWorld().playSound(chestLocation, Sound.UI_TOAST_CHALLENGE_COMPLETE, 1.2f, 1.2f);
                 }
-                Bukkit.broadcastMessage(ChatColor.translateAlternateColorCodes('&',
-                        "&e&l[SUMINISTROS] &a¡Todos los guardianes han caído! El cofre ahora está DESBLOQUEADO."));
             }
         }
     }
@@ -238,9 +313,9 @@ public class SupplyDropEvent implements ActiveEvent, Listener {
         if (!active) return;
         remainingSeconds--;
 
-        // Visual beam
+        // Haz visual discreto
         if (remainingSeconds % 5 == 0 && chestLocation != null && chestLocation.getWorld() != null) {
-            chestLocation.getWorld().spawnParticle(Particle.END_ROD, chestLocation.clone().add(0.5, 1, 0.5), 15, 0.2, 5, 0.2, 0.05);
+            chestLocation.getWorld().spawnParticle(Particle.END_ROD, chestLocation.clone().add(0.5, 1, 0.5), 10, 0.2, 3, 0.2, 0.03);
         }
 
         if (remainingSeconds <= 0) {
@@ -254,9 +329,35 @@ public class SupplyDropEvent implements ActiveEvent, Listener {
 
     @Override
     public void stop(String reason) {
+        if (!active && guardianUuids.isEmpty()) return;
         this.active = false;
         HandlerList.unregisterAll(this);
+
+        // Despawn guardianes remanentes para no dejar WitherSkeletons con Resistencia II sueltos
+        for (UUID gid : guardianUuids) {
+            Entity e = Bukkit.getEntity(gid);
+            if (e != null && e.isValid()) {
+                e.remove();
+            }
+        }
         guardianUuids.clear();
+
+        // Si nadie reclamó el cofre antes de expirar/apagar, limpiar inventario y restaurar AIRE
+        if (!claimed && chestLocation != null && chestLocation.getWorld() != null
+                && chestLocation.getWorld().isChunkLoaded(chestLocation.getBlockX() >> 4, chestLocation.getBlockZ() >> 4)) {
+            Block b = chestLocation.getBlock();
+            if (b.getType() == Material.CHEST) {
+                if (b.getState() instanceof Chest c) {
+                    c.getInventory().clear();
+                }
+                b.setType(Material.AIR, false);
+            }
+        }
+
+        if (telemetry != null) {
+            telemetry.record(0, "supply-drop-" + lootTier, "SUPPLY_DROP", "FINISHED",
+                    claimed ? 1 : 0, reason);
+        }
     }
 
     @Override
