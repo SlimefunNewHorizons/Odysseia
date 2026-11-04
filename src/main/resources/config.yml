@@ -220,6 +220,8 @@ bedrock-guard:
   - world_galactifun_enceladus
 starter-kit:
   enabled: true
+  # Empty preserves legacy delivery on join. T2 uses survival to wait for its worlds.
+  base-modality: ''
   kit: inicial
   delay-ticks: 400
   max-retries: 3
@@ -2783,6 +2785,118 @@ kits:
         unbreaking: 3
     - material: STONE_SWORD
       name: '&d&lEspada del Primer Bloque'
+      enchantments:
+        sharpness: 2
+        unbreaking: 3
+    - material: COOKED_BEEF
+      amount: 32
+    - material: TORCH
+      amount: 32
+    - material: CHEST
+    - material: SCAFFOLDING
+      amount: 32
+    - material: WATER_BUCKET
+  inicial-clasico:
+    cooldown: '-1'
+    permission: odysseia.kit.inicial-clasico
+    protection-alias: starter
+    protection-amount: 1
+    vanilla-items:
+    - material: DIAMOND_HELMET
+      name: '&b&lStarter Helmet'
+      enchantments:
+        protection: 6
+        thorns: 3
+        unbreaking: 10
+        mending: 1
+        respiration: 3
+        aqua_affinity: 1
+    - material: DIAMOND_CHESTPLATE
+      name: '&b&lStarter Chestplate'
+      enchantments:
+        protection: 6
+        thorns: 3
+        unbreaking: 10
+        mending: 1
+    - material: DIAMOND_LEGGINGS
+      name: '&b&lStarter Leggings'
+      enchantments:
+        protection: 6
+        thorns: 3
+        unbreaking: 10
+        mending: 1
+    - material: DIAMOND_BOOTS
+      name: '&b&lStarter Boots'
+      enchantments:
+        protection: 6
+        thorns: 3
+        unbreaking: 10
+        mending: 1
+        feather_falling: 4
+        depth_strider: 3
+    - material: DIAMOND_SWORD
+      name: '&b&lStarter Sword'
+      enchantments:
+        sharpness: 6
+        looting: 3
+        fire_aspect: 2
+        knockback: 2
+        sweeping_edge: 3
+        unbreaking: 10
+        mending: 1
+    - material: DIAMOND_PICKAXE
+      name: '&b&lStarter Pickaxe'
+      enchantments:
+        efficiency: 6
+        fortune: 3
+        unbreaking: 10
+        mending: 1
+    - material: DIAMOND_AXE
+      name: '&b&lStarter Axe'
+      enchantments:
+        efficiency: 6
+        sharpness: 6
+        unbreaking: 10
+        mending: 1
+    - material: DIAMOND_SHOVEL
+      name: '&b&lStarter Shovel'
+      enchantments:
+        efficiency: 6
+        silk_touch: 1
+        unbreaking: 10
+        mending: 1
+    - material: SHIELD
+      name: '&bStarter Shield'
+      enchantments:
+        unbreaking: 10
+        mending: 1
+    - material: GOLDEN_CARROT
+      amount: 24
+    - material: COOKED_BEEF
+      amount: 32
+    - material: TORCH
+      amount: 64
+    - material: WRITTEN_BOOK
+      book-title: '&6DrakesCraft Guide'
+      author: '&eStaff DrakesCraft'
+      pages:
+      - 'DrakesCraft\nWelcome to Classic survival.\nGuides: web.drakescraft.cl'
+      - Getting started\n/spawn, /sethome, /home, /rtp, /modalidades
+      - Classic\nVanilla progression. Slimefun machines belong in the Slimefun modality.
+      - Economy\n/bal, /pay, /bank, /tienda
+      - Protection\nPlace your ProtectionStone.\n/ps add <player>, /ps home, /ps list
+      - Help\n/discord for support.\nweb.drakescraft.cl
+  inicial-onechunk:
+    cooldown: '-1'
+    permission: odysseia.kit.inicial-onechunk
+    vanilla-items:
+    - material: STONE_PICKAXE
+      name: '&d&lFirst Block Pickaxe'
+      enchantments:
+        efficiency: 2
+        unbreaking: 3
+    - material: STONE_SWORD
+      name: '&d&lFirst Block Sword'
       enchantments:
         sharpness: 2
         unbreaking: 3
