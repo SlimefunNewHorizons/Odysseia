@@ -4029,6 +4029,20 @@ exploit-guard:
     - ushop
     - ah
     - auctionhouse
+island-fall-safety:
+  # Opt-in: preserves existing behaviour until explicitly enabled.
+  enabled: false
+  # Exact world names; combat, void and border damage are unaffected.
+  worlds:
+  - bskyblock_world
+  - bskyblock_world_nether
+  - bskyblock_world_the_end
+  - oneblock_world
+  - oneblock_world_nether
+  - oneblock_world_the_end
+  - onechunk_world
+  - onechunk_world_nether
+  - onechunk_world_the_end
 modalidades:
   modos:
     survival:
