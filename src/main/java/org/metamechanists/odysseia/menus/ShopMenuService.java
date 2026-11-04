@@ -169,13 +169,23 @@ public final class ShopMenuService implements Listener, org.bukkit.command.Comma
         }
     }
 
-    private void dispatchSafely(Player player, String command) {
+    static boolean dispatchSafely(Runnable dispatch, java.util.function.Consumer<String> warningSink,
+                                  String playerName, String command) {
         try {
-            Bukkit.dispatchCommand(player, command);
-        } catch (org.bukkit.command.CommandException ex) {
-            plugin.getLogger().warning("El comando '" + command + "' invocado desde el menú falló para "
-                    + player.getName() + ": " + ex.getMessage());
+            dispatch.run();
+            return true;
+        } catch (RuntimeException ex) {
+            warningSink.accept("El comando '" + command + "' invocado desde el menú falló para "
+                    + playerName + ": " + ex.getMessage());
+            return false;
         }
+    }
+
+    private void dispatchSafely(Player player, String command) {
+        dispatchSafely(() -> Bukkit.dispatchCommand(player, command),
+                plugin.getLogger()::warning,
+                player.getName(),
+                command);
     }
 
     @EventHandler
@@ -193,11 +203,15 @@ public final class ShopMenuService implements Listener, org.bukkit.command.Comma
         if (pages.containsKey(event.getInventory())) event.setCancelled(true);
     }
 
+    static Material resolveItemMaterial(ConfigurationSection entry, Material fallback) {
+        Material safeFallback = (fallback != null && fallback.isItem()) ? fallback : Material.CHEST;
+        if (entry == null) return safeFallback;
+        Material material = Material.matchMaterial(entry.getString("material", safeFallback.name()));
+        return (material == null || !material.isItem()) ? safeFallback : material;
+    }
+
     private ItemStack item(ConfigurationSection entry, Material fallback) {
-        Material material = entry == null ? fallback : Material.matchMaterial(entry.getString("material", fallback.name()));
-        if (material == null || !material.isItem()) {
-            material = fallback;
-        }
+        Material material = resolveItemMaterial(entry, fallback);
         ItemStack item = new ItemStack(material);
         if (entry == null) return item;
         ItemMeta meta = item.getItemMeta();
