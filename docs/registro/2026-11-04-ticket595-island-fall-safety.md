@@ -27,7 +27,12 @@ The jar includes the new listener, class version 65 and Mojang namespace.
 Validation on `port-26x`: protected JDK 25 build against Paper
 `26.2.build.129-stable`, using `-Dpaper26=true -Dmaven.compiler.fork=true`:
 380 tests, zero failures/errors/skips. Jar listener class version 69;
-SHA-256 `e2667662f8b14e3be8d4989c97d821f409e922d1cb4ab5092e53425d29ca5b52`.
+Final SHA-256 `2195256c5d2d08f3b5fa5d62fba7ff2e530d99eaa7b0ddcbaab3184e031c1008`.
+Artifact inspection also found the port branch lacked the Mojang namespace
+manifest entry present on `main`. The same shade manifest transformer was
+added here. A protected package-only run passed; the packaged listener and
+main class bytes exactly match those used by the 380-test run. The final jar
+declares `paperweight-mappings-namespace: mojang`.
 The first in-process compiler run failed during test compilation with
 `Cannot load from object array because this.hashes is null`. A clean build
 with a separate javac process passed without source changes. This records the
