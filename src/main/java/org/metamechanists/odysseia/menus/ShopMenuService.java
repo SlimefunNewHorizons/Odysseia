@@ -142,7 +142,7 @@ public final class ShopMenuService implements Listener, org.bukkit.command.Comma
                 String claim = "kit " + command.substring("odysseia:claim:".length());
                 var modalityGuard = plugin.getModalityStorageGuard();
                 if (modalityGuard == null || !modalityGuard.intercept(player, claim)) {
-                    Bukkit.dispatchCommand(player, claim);
+                    dispatchSafely(player, claim);
                 }
             } else if (command.startsWith("odysseia:survival-command:")) {
                 String survivalCommand = command.substring("odysseia:survival-command:".length()).trim();
@@ -152,7 +152,7 @@ public final class ShopMenuService implements Listener, org.bukkit.command.Comma
                     break;
                 }
                 if (!survivalCommand.isBlank()) {
-                    Bukkit.dispatchCommand(player, survivalCommand);
+                    dispatchSafely(player, survivalCommand);
                 }
             } else if (command.startsWith("odysseia:message:")) {
                 player.sendMessage(color(command.substring("odysseia:message:".length())));
@@ -164,8 +164,17 @@ public final class ShopMenuService implements Listener, org.bukkit.command.Comma
                     break;
                 }
                 StoreCommandGuardListener.runInternal(player,
-                        () -> Bukkit.dispatchCommand(player, dispatchedCommand));
+                        () -> dispatchSafely(player, dispatchedCommand));
             }
+        }
+    }
+
+    private void dispatchSafely(Player player, String command) {
+        try {
+            Bukkit.dispatchCommand(player, command);
+        } catch (org.bukkit.command.CommandException ex) {
+            plugin.getLogger().warning("El comando '" + command + "' invocado desde el menú falló para "
+                    + player.getName() + ": " + ex.getMessage());
         }
     }
 
@@ -186,7 +195,10 @@ public final class ShopMenuService implements Listener, org.bukkit.command.Comma
 
     private ItemStack item(ConfigurationSection entry, Material fallback) {
         Material material = entry == null ? fallback : Material.matchMaterial(entry.getString("material", fallback.name()));
-        ItemStack item = new ItemStack(material == null ? fallback : material);
+        if (material == null || !material.isItem()) {
+            material = fallback;
+        }
+        ItemStack item = new ItemStack(material);
         if (entry == null) return item;
         ItemMeta meta = item.getItemMeta();
         if (meta == null) return item;
