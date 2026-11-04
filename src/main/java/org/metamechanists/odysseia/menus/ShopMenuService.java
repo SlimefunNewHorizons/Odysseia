@@ -142,7 +142,7 @@ public final class ShopMenuService implements Listener, org.bukkit.command.Comma
                 String claim = "kit " + command.substring("odysseia:claim:".length());
                 var modalityGuard = plugin.getModalityStorageGuard();
                 if (modalityGuard == null || !modalityGuard.intercept(player, claim)) {
-                    Bukkit.dispatchCommand(player, claim);
+                    dispatchSafely(player, claim);
                 }
             } else if (command.startsWith("odysseia:survival-command:")) {
                 String survivalCommand = command.substring("odysseia:survival-command:".length()).trim();
@@ -152,7 +152,7 @@ public final class ShopMenuService implements Listener, org.bukkit.command.Comma
                     break;
                 }
                 if (!survivalCommand.isBlank()) {
-                    Bukkit.dispatchCommand(player, survivalCommand);
+                    dispatchSafely(player, survivalCommand);
                 }
             } else if (command.startsWith("odysseia:message:")) {
                 player.sendMessage(color(command.substring("odysseia:message:".length())));
@@ -164,9 +164,28 @@ public final class ShopMenuService implements Listener, org.bukkit.command.Comma
                     break;
                 }
                 StoreCommandGuardListener.runInternal(player,
-                        () -> Bukkit.dispatchCommand(player, dispatchedCommand));
+                        () -> dispatchSafely(player, dispatchedCommand));
             }
         }
+    }
+
+    static boolean dispatchSafely(Runnable dispatch, java.util.function.Consumer<String> warningSink,
+                                  String playerName, String command) {
+        try {
+            dispatch.run();
+            return true;
+        } catch (RuntimeException ex) {
+            warningSink.accept("El comando '" + command + "' invocado desde el menú falló para "
+                    + playerName + ": " + ex.getMessage());
+            return false;
+        }
+    }
+
+    private void dispatchSafely(Player player, String command) {
+        dispatchSafely(() -> Bukkit.dispatchCommand(player, command),
+                plugin.getLogger()::warning,
+                player.getName(),
+                command);
     }
 
     @EventHandler
@@ -184,9 +203,16 @@ public final class ShopMenuService implements Listener, org.bukkit.command.Comma
         if (pages.containsKey(event.getInventory())) event.setCancelled(true);
     }
 
+    static Material resolveItemMaterial(ConfigurationSection entry, Material fallback) {
+        Material safeFallback = (fallback != null && fallback.isItem()) ? fallback : Material.CHEST;
+        if (entry == null) return safeFallback;
+        Material material = Material.matchMaterial(entry.getString("material", safeFallback.name()));
+        return (material == null || !material.isItem()) ? safeFallback : material;
+    }
+
     private ItemStack item(ConfigurationSection entry, Material fallback) {
-        Material material = entry == null ? fallback : Material.matchMaterial(entry.getString("material", fallback.name()));
-        ItemStack item = new ItemStack(material == null ? fallback : material);
+        Material material = resolveItemMaterial(entry, fallback);
+        ItemStack item = new ItemStack(material);
         if (entry == null) return item;
         ItemMeta meta = item.getItemMeta();
         if (meta == null) return item;
