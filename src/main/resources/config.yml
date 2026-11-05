@@ -197,6 +197,8 @@ resource-pack:
 
 bedrock-guard:
   enabled: true
+  # Disable the guarded RTP path without replacing the plugin.
+  rtp-enabled: true
   limite: 150000
   limite-nether: 18750
   mundos:
