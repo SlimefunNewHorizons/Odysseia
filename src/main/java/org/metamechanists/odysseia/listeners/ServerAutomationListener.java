@@ -73,23 +73,15 @@ public final class ServerAutomationListener implements Listener {
         }
         if (!player.getName().startsWith(".")) return;
         event.setCancelled(true);
-        String current = player.getWorld().getName();
-        boolean nether = current.equalsIgnoreCase("world_nether") || current.equalsIgnoreCase("clasico_nether");
-        // Se queda en la modalidad actual: Clasico no puede acabar en world.
-        String world = current.equalsIgnoreCase("clasico") ? "clasico" : nether ? current : "world";
-        // Mismos limites que BedrockRangeGuardListener: si difirieran, el guard cancelaria este RTP.
-        int maximum = nether
-                ? plugin.getConfig().getInt("bedrock-guard.limite-nether", 18_750)
-                : plugin.getConfig().getInt("bedrock-guard.limite", 150_000);
-        // Nunca fuera del borde real del mundo destino.
-        World target = Bukkit.getWorld(world);
-        if (target != null) {
-            maximum = Math.min(maximum, (int) (target.getWorldBorder().getSize() / 2) - 500);
+        World world = player.getWorld();
+        if (!RtpBoundsPolicy.supportsWorld(world.getName())) {
+            player.sendMessage(color("&cRTP is not available in this world."));
+            return;
         }
-        maximum = Math.max(maximum, 500);
-        int minimum = Math.min(5_000, maximum / 2);
-        player.sendMessage(color("&c[!] &eRTP Bedrock limitado a " + maximum + " bloques para evitar fallos de renderizado."));
-        Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "customrtp " + player.getName() + " " + world + " " + minimum + " " + maximum + " 0 0");
+        String commandLine = safeRtpCommand(player, world);
+        if (commandLine == null) return;
+        player.sendMessage(color("&eRTP stays within this world's border and Bedrock coordinate limits."));
+        Bukkit.dispatchCommand(Bukkit.getConsoleSender(), commandLine);
     }
 
     /** Lets authorized staff random-teleport an online player without changing normal /rtp behavior. */
@@ -107,9 +99,31 @@ public final class ServerAutomationListener implements Listener {
             sender.sendMessage(color("&cEl RTP administrativo solo funciona en el mundo principal."));
             return;
         }
+        String commandLine = safeRtpCommand(target, target.getWorld());
+        if (commandLine == null) return;
         sender.sendMessage(color("&aRTP iniciado para &e" + target.getName() + "&a."));
         target.sendMessage(color("&eUn miembro del staff inició un RTP para ti."));
-        Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "customrtp " + target.getName() + " world 5000 " + Math.max(500, Math.min(150_000, (int) (target.getWorld().getWorldBorder().getSize() / 2) - 500)) + " 0 0");
+        Bukkit.dispatchCommand(Bukkit.getConsoleSender(), commandLine);
+    }
+
+    private String safeRtpCommand(Player target, World world) {
+        if (!plugin.getConfig().getBoolean("bedrock-guard.rtp-enabled", true)) {
+            target.sendMessage(color("&cRTP is temporarily disabled."));
+            return null;
+        }
+        boolean nether = world.getName().toLowerCase(Locale.ROOT).endsWith("_nether");
+        int coordinateLimit = nether
+                ? plugin.getConfig().getInt("bedrock-guard.limite-nether", 18_750)
+                : plugin.getConfig().getInt("bedrock-guard.limite", 150_000);
+        var border = world.getWorldBorder();
+        var center = border.getCenter();
+        int maximum = RtpBoundsPolicy.maximum(coordinateLimit, border.getSize(), center.getX(), center.getZ());
+        if (maximum < 1) {
+            target.sendMessage(color("&cNo safe RTP area is available inside this world's border."));
+            return null;
+        }
+        int minimum = Math.min(5_000, maximum / 2);
+        return "customrtp " + target.getName() + " " + world.getName() + " " + minimum + " " + maximum + " 0 0";
     }
 
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)

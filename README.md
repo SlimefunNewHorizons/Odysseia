@@ -43,6 +43,16 @@ Built with a hybrid **Java 21 Bukkit Core** and an accompanying **Rust 2021 high
 
 ---
 
+## Guarded RTP candidate (#556)
+
+`main` targets Paper 1.21.11 / Java 21; `port-26x` targets Paper 26.2 / Java 25.
+The current RTP patch is pending deployment and real Java/Bedrock validation.
+Bedrock RTP keeps `world`, `clasico` and their Nether variants, clips its search
+against the actual border (including displaced centers) and coordinate limits,
+and refuses unsupported worlds or an empty safe area. Staff RTP retains its
+existing main-world and permission restrictions. Set `bedrock-guard.rtp-enabled`
+to `false` to disable the guarded path without replacing the JAR.
+
 ## ✨ Core Highlights
 
 - **💳 Idempotent Purchase & Delivery Engine** — State-machine commerce processor connected to Tebex Headless API. Backed by transactional SQLite WAL storage; prevents double-claims, supports dry-run validation, offline queues, and automatic chargeback audits.
