@@ -133,6 +133,7 @@ public final class ServerAutomationListener implements Listener {
         Player player = event.getPlayer();
         scheduleTranslation(player);
         scheduleStarterKit(player);
+        scheduleModalityKit(player);
         String path = "players." + player.getUniqueId();
         long now = Instant.now().getEpochSecond();
         long last = rewards.getLong(path + ".last", 0L);
@@ -156,30 +157,40 @@ public final class ServerAutomationListener implements Listener {
         boolean pending = hasByte(player, starterPendingKey);
         boolean delivered = hasByte(player, starterDeliveredKey) || hasByte(player, legacyStarterDeliveredKey);
         boolean claimed = !kitClaims.state(player.getUniqueId(), kit, cooldown).available();
-        if (!StarterKitPolicy.shouldEnroll(player.hasPlayedBefore(), pending, delivered, claimed)) return;
+        String modality = plugin.getConfig().getString("starter-kit.base-modality", "");
+        boolean eligible = modality.isBlank()
+                ? StarterKitPolicy.shouldEnroll(player.hasPlayedBefore(), pending, delivered, claimed)
+                : StarterKitPolicy.shouldEnrollInModality(pending, delivered, claimed);
+        if (!eligible) return;
 
         player.getPersistentDataContainer().set(starterPendingKey, PersistentDataType.BYTE, (byte) 1);
+        if (!isInStarterModality(player, modality)) return;
         long delayTicks = Math.clamp(plugin.getConfig().getLong("starter-kit.delay-ticks", 400L), 20L, 2400L);
         Bukkit.getScheduler().runTaskLater(plugin,
-                () -> attemptStarterKit(player.getUniqueId(), kit, cooldown, 0, starterPendingKey, starterDeliveredKey), delayTicks);
+                () -> attemptStarterKit(player.getUniqueId(), kit, cooldown, 0, starterPendingKey, starterDeliveredKey, modality), delayTicks);
     }
 
     /**
-     * Entrega el kit de bienvenida de SkyBlock y OneBlock la primera vez que el jugador pisa
-     * cada una. El kit de la modalidad base sigue su camino propio en
-     * {@link #scheduleStarterKit(Player)}, que es el que respeta {@code hasPlayedBefore}.
+     * Reanuda las entregas al entrar en su modalidad; el lobby no cuenta como Survival.
      */
     @EventHandler(priority = EventPriority.MONITOR)
     public void onModalityChange(org.bukkit.event.player.PlayerChangedWorldEvent event) {
+        if (!plugin.getConfig().getString("starter-kit.base-modality", "").isBlank()) {
+            scheduleStarterKit(event.getPlayer());
+        }
+        scheduleModalityKit(event.getPlayer());
+    }
+
+    private void scheduleModalityKit(Player player) {
         if (!plugin.getConfig().getBoolean("starter-kit.enabled", true)) return;
         var modalities = plugin.getModalityService();
         if (modalities == null) return;
 
-        String modality = modalities.resolve(event.getPlayer()).id();
+        String modality = modalities.resolve(player).id();
         String kit = plugin.getConfig().getString("starter-kit.por-modalidad." + modality, "").toLowerCase(Locale.ROOT);
         if (kit.isBlank() || plugin.getConfig().getConfigurationSection("kits." + kit) == null) return;
+        if (!isInStarterModality(player, modality)) return;
 
-        Player player = event.getPlayer();
         NamespacedKey pendingKey = new NamespacedKey(plugin, "starter_kit_pending_" + modality);
         NamespacedKey deliveredKey = new NamespacedKey(plugin, "starter_kit_delivered_" + modality);
         String cooldown = plugin.getConfig().getString("kits." + kit + ".cooldown", "-1");
@@ -192,13 +203,20 @@ public final class ServerAutomationListener implements Listener {
         player.getPersistentDataContainer().set(pendingKey, PersistentDataType.BYTE, (byte) 1);
         long delayTicks = Math.clamp(plugin.getConfig().getLong("starter-kit.delay-ticks", 400L), 20L, 2400L);
         Bukkit.getScheduler().runTaskLater(plugin,
-                () -> attemptStarterKit(player.getUniqueId(), kit, cooldown, 0, pendingKey, deliveredKey), delayTicks);
+                () -> attemptStarterKit(player.getUniqueId(), kit, cooldown, 0, pendingKey, deliveredKey, modality), delayTicks);
+    }
+
+    private boolean isInStarterModality(Player player, String modality) {
+        if (modality.isBlank()) return true; // Config antigua: conserva la entrega al conectar.
+        return plugin.getConfig().getStringList("modalidades.modos." + modality + ".mundos").stream()
+                .anyMatch(world -> world.equalsIgnoreCase(player.getWorld().getName()));
     }
 
     private void attemptStarterKit(UUID playerId, String kit, String cooldown, int attempt,
-                                   NamespacedKey pendingKey, NamespacedKey deliveredKey) {
+                                   NamespacedKey pendingKey, NamespacedKey deliveredKey, String modality) {
         Player player = Bukkit.getPlayer(playerId);
         if (player == null || !player.isOnline() || !hasByte(player, pendingKey)) return;
+        if (!isInStarterModality(player, modality)) return;
 
         if (!kitClaims.state(playerId, kit, cooldown).available()) {
             markStarterKitDelivered(player, pendingKey, deliveredKey);
@@ -231,7 +249,7 @@ public final class ServerAutomationListener implements Listener {
                 || result.status() == ActionResult.Status.RETRYABLE_FAILURE) && attempt < maxRetries) {
             long retryTicks = Math.clamp(plugin.getConfig().getLong("starter-kit.retry-delay-ticks", 200L), 20L, 1200L);
             Bukkit.getScheduler().runTaskLater(plugin,
-                    () -> attemptStarterKit(playerId, kit, cooldown, attempt + 1, pendingKey, deliveredKey), retryTicks);
+                    () -> attemptStarterKit(playerId, kit, cooldown, attempt + 1, pendingKey, deliveredKey, modality), retryTicks);
             return;
         }
 

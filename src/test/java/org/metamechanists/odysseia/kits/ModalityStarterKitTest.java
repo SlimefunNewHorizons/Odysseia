@@ -46,9 +46,20 @@ class ModalityStarterKitTest {
     @Test
     void islandKitsDoNotHandOutProtectionStones() {
         // Dentro de las islas protege BentoBox; una piedra ahi no sirve y se perderia.
-        for (String kit : new String[]{"inicial-skyblock", "inicial-oneblock"}) {
+        for (String kit : new String[]{"inicial-skyblock", "inicial-oneblock", "inicial-onechunk"}) {
             assertTrue(CONFIG.getString("kits." + kit + ".protection-alias", "").isBlank(),
                     kit + " no deberia entregar proteccion");
+        }
+    }
+
+    @Test
+    void optionalNewKitsContainOnlyVanillaItems() {
+        for (String kit : new String[]{"inicial-clasico", "inicial-onechunk"}) {
+            assertNotNull(CONFIG.getConfigurationSection("kits." + kit));
+            for (var item : CONFIG.getMapList("kits." + kit + ".vanilla-items")) {
+                assertFalse(item.containsKey("slimefun-item"), kit + " must not leak Slimefun items");
+                assertFalse(item.containsKey("special-item"), kit + " must use vanilla items");
+            }
         }
     }
 

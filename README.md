@@ -156,6 +156,19 @@ Odysseia treats store transactions as **strict state machines**, not arbitrary c
 
 ---
 
+## Starter kits by modality
+
+`starter-kit.base-modality` defaults to an empty string, preserving first-join delivery.
+Set it to `survival` to defer the base kit until a world explicitly listed under
+`modalidades.modos.survival.mundos`. The lobby fallback does not qualify.
+Pending deliveries resume on world entry or reconnect, and recheck the destination
+before adding items. Existing claim records and legacy delivered flags remain authoritative.
+
+T2 can map `clasico: inicial-clasico` and `onechunk: inicial-onechunk` under
+`starter-kit.por-modalidad`. These optional templates use vanilla items; island kits
+do not include ProtectionStones. Each kit is delivered once, independently.
+The new mappings are opt-in and are not activated in Dallas by this change.
+
 ## 🦀 Rust Workspace Architecture
 
 In addition to the Java 21 plugin JAR, Odysseia features an experimental high-performance Rust 2021 workspace in `crates/`:

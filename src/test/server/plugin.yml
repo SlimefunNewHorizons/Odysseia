@@ -1,0 +1,5 @@
+name: OdysseiaStartupSmoke
+version: '1.0'
+main: org.metamechanists.odysseia.smoke.OdysseiaStartupSmoke
+api-version: '1.21'
+depend: [Odysseia]

@@ -149,6 +149,8 @@
                         <groupId>org.apache.maven.plugins</groupId>
                         <artifactId>maven-compiler-plugin</artifactId>
                         <configuration>
+                            <!-- Isolate javac name tables between main and test compilation. -->
+                            <fork>true</fork>
                             <source>25</source>
                             <target>25</target>
                             <compilerArgs combine.self="override">
