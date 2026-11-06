@@ -122,7 +122,7 @@ public record NovemberDaySpec(
             comboDrop(26, 20, 0, 30, "semana_cumple", "★ Semana del Fundador (Día 5): Tesoro Astral de Star", "★ Founder's Week (Day 5): Star Astral Treasure", "Cofre Legendario + 2.5x Economía activa", "ECONOMIA", 2.5, "legendario"),
             comboRush(27, 21, 0, 45, "semana_cumple", "★ Semana del Fundador (Día 6): Vigilia de los Dragones", "★ Founder's Week (Day 6): Vigil of the Dragons", "3.0x XP natural (45m) + Minería (25m)", "XP", 3.0, "MINING", 25),
             comboDualBoost(28, 21, 0, 60, "semana_cumple", "★ Semana del Fundador (Día 7): Víspera Real 3X", "★ Founder's Week (Day 7): Royal Eve 3X", "3.0x XP + 3.0x Investigación Slimefun (60m)", "XP", 3.0, "SLIMEFUN", 3.0),
-            gala(29, 20, 0, 30, "cumple_owner", "👑 Cierre Mayor: Cumpleaños de JackStar (Gala 5X)", "👑 Grand Finale: JackStar's Birthday Gala (5X)", "5X Global 24h + Gran Rush de Gala + Cofre Legendario"),
+            gala(29, 20, 0, 30, "cumple_owner", "👑 Cierre Mayor: Cumpleaños de JackStar (Gala)", "👑 Grand Finale: JackStar's Birthday Gala", "Gran Rush de Gala + Cofre Legendario"),
             boost(30, 20, 0, 30, "cierre_mes", "Epílogo de Noviembre: Rumbo al Solsticio", "November Epilogue: Road to Winter Solstice", "2.0x XP natural (30 min)", "XP", 2.0)
         );
     }

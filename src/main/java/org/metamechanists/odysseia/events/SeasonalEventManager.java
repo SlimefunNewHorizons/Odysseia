@@ -45,8 +45,7 @@ import java.util.*;
  *    - Emisión periódica de susurros y lamentos del Tártaro con ambientación sónica.
  *    - Mecánicas exclusivas para el Kit Sombras del Tártaro e Inmunidad a Radiación / Fuego / Lava.
  * 2. 29 DE NOVIEMBRE (Cumpleaños del Creador - JackStar):
- *    - 5X Economía, 5X EXP y 5X Dracmas activos 24h.
- *    - Bendición Divina (Haste X + Fuerza V + Velocidad II) para toda la comunidad.
+ *    - Sin boost ni bendición: solo una cuenta atrás sobria en los anuncios (Skript t2_cumple_aviso.sk).
  * 3. DICIEMBRE (Solsticio Invernal & Navidad):
  *    - Impulsos festivos y atmósfera de celebración.
  * 4. FEBRERO (Furia de Afrodita / San Valentín):
@@ -64,7 +63,6 @@ public class SeasonalEventManager implements Listener {
 
     private BukkitTask tickTask;
     private long lastAtmosphericBroadcast = 0;
-    private long lastBirthdayBroadcast = 0;
 
     private static final NamespacedKey HALLOWEEN_TREAT_KEY = new NamespacedKey("odysseia", "halloween_treat");
     private final java.util.concurrent.ConcurrentHashMap<String, Long> midnightBellChimedPerWorld = new java.util.concurrent.ConcurrentHashMap<>();
@@ -155,46 +153,6 @@ public class SeasonalEventManager implements Listener {
                 for (Player p : Bukkit.getOnlinePlayers()) {
                     p.playSound(p.getLocation(), Sound.AMBIENT_CAVE, 1.2f, 0.4f);
                     p.playSound(p.getLocation(), Sound.BLOCK_BELL_RESONATE, 0.9f, 0.4f);
-                }
-            }
-        }
-
-        // 2. MÓDULO CUMPLEAÑOS DEL CREADOR (29 DE NOVIEMBRE)
-        if (isBirthdayActive()) {
-            if (boostManager != null) {
-                if (!boostManager.hasActiveBoost(ServerBoostManager.BoostCategory.ECONOMIA)) {
-                    boostManager.startBoost(ServerBoostManager.BoostCategory.ECONOMIA, 5.0, 86400L);
-                }
-                if (!boostManager.hasActiveBoost(ServerBoostManager.BoostCategory.XP)) {
-                    boostManager.startBoost(ServerBoostManager.BoostCategory.XP, 5.0, 86400L);
-                }
-                if (!boostManager.hasActiveBoost(ServerBoostManager.BoostCategory.DRACMAS)) {
-                    boostManager.startBoost(ServerBoostManager.BoostCategory.DRACMAS, 5.0, 86400L);
-                }
-            }
-
-            // Bendición divina a jugadores en línea (respetando opt-out /evento silenciar y torneos PvP)
-            for (Player p : Bukkit.getOnlinePlayers()) {
-                if (optOutStore != null && optOutStore.isOptedOut(p.getUniqueId())) continue;
-                if (pvpManager != null && pvpManager.isParticipant(p.getUniqueId())) continue;
-                p.addPotionEffect(new PotionEffect(PotionEffectType.HASTE, 400, 9, true, false, true)); // Haste X sin particulas
-                p.addPotionEffect(new PotionEffect(PotionEffectType.STRENGTH, 400, 4, true, false, true)); // Fuerza V sin particulas
-                p.addPotionEffect(new PotionEffect(PotionEffectType.SPEED, 400, 1, true, false, true)); // Velocidad II sin particulas
-            }
-
-            // Anuncio periódico cada 2 horas (respetando opt-out)
-            if (now - lastBirthdayBroadcast >= 7200_000L && !Bukkit.getOnlinePlayers().isEmpty()) {
-                lastBirthdayBroadcast = now;
-                String bdayMsg1 = ChatColor.translateAlternateColorCodes('&',
-                        "&6&l👑 [CUMPLEAÑOS DEL CREADOR] &e¡Hoy celebramos el natalicio de &6Jack (JackStar)&e, Arquitecto & Creador de DrakesCraft!");
-                String bdayMsg2 = ChatColor.translateAlternateColorCodes('&',
-                        "&a✦ 5X Economía, 5X EXP, 5X Dracmas y Bendición Divina activos hoy &8· &7Silenciar: &f/evento silenciar");
-
-                for (Player p : Bukkit.getOnlinePlayers()) {
-                    if (optOutStore != null && optOutStore.isOptedOut(p.getUniqueId())) continue;
-                    p.sendMessage(bdayMsg1);
-                    p.sendMessage(bdayMsg2);
-                    p.playSound(p.getLocation(), Sound.UI_TOAST_CHALLENGE_COMPLETE, 0.9f, 1.0f);
                 }
             }
         }

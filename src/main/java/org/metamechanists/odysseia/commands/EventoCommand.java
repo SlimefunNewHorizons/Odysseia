@@ -421,7 +421,7 @@ public class EventoCommand implements CommandExecutor, TabCompleter {
         if (args.length < 2) {
             sender.sendMessage(ChatColor.GOLD + "=== ESTADO DE EVENTOS ESTACIONALES ===");
             sender.sendMessage(ChatColor.translateAlternateColorCodes('&', "  • &cHalloween (Tártaro & Noche Perpetua): " + (sm.isHalloweenActive() ? "&aACTIVO" : "&cINACTIVO")));
-            sender.sendMessage(ChatColor.translateAlternateColorCodes('&', "  • &eCumpleaños del Creador (29 Nov, 5X): " + (sm.isBirthdayActive() ? "&aACTIVO" : "&cINACTIVO")));
+            sender.sendMessage(ChatColor.translateAlternateColorCodes('&', "  • &eCumpleaños del Creador (29 Nov, sin boost): " + (sm.isBirthdayActive() ? "&aACTIVO" : "&cINACTIVO")));
             sender.sendMessage(ChatColor.translateAlternateColorCodes('&', "  • &bSolsticio / Navidad (Diciembre): " + (sm.isWinterActive() ? "&aACTIVO" : "&cINACTIVO")));
             sender.sendMessage(ChatColor.translateAlternateColorCodes('&', "  • &dSan Valentín / Afrodita (Febrero): " + (sm.isValentinesActive() ? "&aACTIVO" : "&cINACTIVO")));
             sender.sendMessage(ChatColor.YELLOW + "Uso: /evento seasonal <halloween|cumplejack|solsticio|valentin> <on|off|auto>");
