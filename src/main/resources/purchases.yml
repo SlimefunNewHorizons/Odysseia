@@ -603,7 +603,7 @@ products:
     verification: VERIFIED_PRODUCTION
     dependencies: [LuckPerms]
     actions:
-      - {id: perm-vault, type: TEMPORARY_PERMISSION, refund: AUTO_REVOKE, parameters: {permission: "playervaults.amount.4"}}
+      - {id: perm-vault, type: TEMPORARY_PERMISSION, refund: AUTO_REVOKE, parameters: {permission: "playervaultz.vaults.4"}}
       - {id: notify, type: NOTIFICATION, requires-online: true, required: false, refund: NOT_REVOCABLE, parameters: {message: "&a¡Pack de 3 Bóvedas activado! Usa /pv 2 a /pv 4."}}
       - {id: announce, type: ANNOUNCEMENT, refund: NOT_REVOCABLE, parameters: {product: "Pack +3 Bóvedas"}}
   vaults_pack_10:
@@ -616,7 +616,7 @@ products:
     verification: VERIFIED_PRODUCTION
     dependencies: [LuckPerms]
     actions:
-      - {id: perm-vault, type: TEMPORARY_PERMISSION, refund: AUTO_REVOKE, parameters: {permission: "playervaults.amount.10"}}
+      - {id: perm-vault, type: TEMPORARY_PERMISSION, refund: AUTO_REVOKE, parameters: {permission: "playervaultz.vaults.10"}}
       - {id: notify, type: NOTIFICATION, requires-online: true, required: false, refund: NOT_REVOCABLE, parameters: {message: "&a¡Pack de 10 Bóvedas activado! Usa /pv 1 a /pv 10."}}
       - {id: announce, type: ANNOUNCEMENT, refund: NOT_REVOCABLE, parameters: {product: "Pack +10 Bóvedas"}}
   homes_pack_5:
@@ -681,7 +681,7 @@ products:
     verification: VERIFIED_PRODUCTION
     dependencies: []
     actions:
-      - {id: keys, type: CONSOLE_COMMAND, requires-online: true, refund: NOT_REVOCABLE, parameters: {command: "crates givekey {player} atenea 3"}}
+      - {id: keys, type: CONSOLE_COMMAND, requires-online: true, refund: NOT_REVOCABLE, parameters: {command: "oraculo givekey {player} atenea 3"}}
       - {id: notify, type: NOTIFICATION, requires-online: true, required: false, refund: NOT_REVOCABLE, parameters: {message: "&a¡Has recibido 3 Llaves del Relicario de Atenea!"}}
       - {id: announce, type: ANNOUNCEMENT, refund: NOT_REVOCABLE, parameters: {product: "3x Llaves Atenea"}}
   keys_hermes_5:
@@ -694,7 +694,7 @@ products:
     verification: VERIFIED_PRODUCTION
     dependencies: []
     actions:
-      - {id: keys, type: CONSOLE_COMMAND, requires-online: true, refund: NOT_REVOCABLE, parameters: {command: "crates givekey {player} hermes 5"}}
+      - {id: keys, type: CONSOLE_COMMAND, requires-online: true, refund: NOT_REVOCABLE, parameters: {command: "oraculo givekey {player} hermes 5"}}
       - {id: notify, type: NOTIFICATION, requires-online: true, required: false, refund: NOT_REVOCABLE, parameters: {message: "&a¡Has recibido 5 Llaves del Relicario de Hermes!"}}
       - {id: announce, type: ANNOUNCEMENT, refund: NOT_REVOCABLE, parameters: {product: "5x Llaves Hermes"}}
   keys_zeus_3:
@@ -707,7 +707,7 @@ products:
     verification: VERIFIED_PRODUCTION
     dependencies: []
     actions:
-      - {id: keys, type: CONSOLE_COMMAND, requires-online: true, refund: NOT_REVOCABLE, parameters: {command: "crates givekey {player} zeus 3"}}
+      - {id: keys, type: CONSOLE_COMMAND, requires-online: true, refund: NOT_REVOCABLE, parameters: {command: "oraculo givekey {player} zeus 3"}}
       - {id: notify, type: NOTIFICATION, requires-online: true, required: false, refund: NOT_REVOCABLE, parameters: {message: "&a¡Has recibido 3 Llaves del Relicario de Zeus!"}}
       - {id: announce, type: ANNOUNCEMENT, refund: NOT_REVOCABLE, parameters: {product: "3x Llaves Zeus"}}
   booster_money_1h:
