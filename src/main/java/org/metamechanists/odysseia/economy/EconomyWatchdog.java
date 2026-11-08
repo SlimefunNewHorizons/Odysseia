@@ -63,10 +63,12 @@ public final class EconomyWatchdog {
         public double retenido;     // acumulado retenido (pendiente de decision del staff)
         public String motivo;
         public long desde;
+        public String modalidad;    // null: registro antiguo, requiere revision sin mover dinero
     }
 
     private final JavaPlugin plugin;
     private final Map<UUID, Deque<Sample>> muestras = new HashMap<>();
+    private final Map<UUID, String> modalidadMuestras = new HashMap<>();
     private final Map<UUID, Fiscalizacion> fiscalizados = new HashMap<>();
     private final File ficheroRetenciones;
     private Economy economy;
@@ -229,20 +231,39 @@ public final class EconomyWatchdog {
 
     // ------------------------------------------------------------------ vigilancia
 
+    private String modalidad(Player player) {
+        if (sbankGetBanks != null && modalityOf != null) {
+            try {
+                return (String) modalityOf.invoke(null, player.getWorld().getName());
+            } catch (ReflectiveOperationException | RuntimeException e) {
+                throw new IllegalStateException("No pude determinar la modalidad de la cuenta.", e);
+            }
+        }
+        // Sin API de modalidad, no mezclar siquiera dos mundos distintos.
+        return "world:" + player.getWorld().getName();
+    }
+
     private void tick() {
         long ahora = System.currentTimeMillis();
         for (Player p : Bukkit.getOnlinePlayers()) {
             if (p.hasPermission("odysseia.sii.exempt")) continue;
             double total;
+            String modalidad;
             try {
+                modalidad = modalidad(p);
                 total = patrimonio(p);
             } catch (RuntimeException e) {
                 continue;
             }
             UUID id = p.getUniqueId();
+            if (!modalidad.equals(modalidadMuestras.put(id, modalidad))) muestras.remove(id);
             Fiscalizacion f = fiscalizados.get(id);
             if (f != null) {
+                // Una fiscalizacion por jugador: queda en pausa fuera de su cuenta original.
+                // Los registros antiguos sin modalidad se conservan para revision manual.
+                if (!modalidad.equals(f.modalidad)) continue;
                 if (ahora >= f.hasta) {
+                    if (f.retenido > 0) continue; // No perder la deuda al terminar el plazo.
                     fiscalizados.remove(id);
                     guardarRetenciones();
                     p.sendMessage(color("&6[SII] &aTu cuenta salio de fiscalizacion. "
@@ -292,6 +313,7 @@ public final class EconomyWatchdog {
         f.base = patrimonio(p);
         f.retenido = retenido;
         f.motivo = detalle;
+        f.modalidad = modalidad(p);
         fiscalizados.put(p.getUniqueId(), f);
         muestras.remove(p.getUniqueId());
         guardarRetenciones();
@@ -323,9 +345,16 @@ public final class EconomyWatchdog {
                     double saldo = (double) bankGetBalance.invoke(b);
                     double delBanco = Math.min(saldo, restante);
                     if (delBanco > 0) {
-                        bankSetBalance.invoke(b, saldo - delBanco);
-                        sbankPersist.invoke(null, b);
-                        restante -= delBanco;
+                        boolean persistido = false;
+                        try {
+                            bankSetBalance.invoke(b, saldo - delBanco);
+                            Object resultado = sbankPersist.invoke(null, b);
+                            persistido = sbankPersist.getReturnType() == void.class || Boolean.TRUE.equals(resultado);
+                        } finally {
+                            if (!persistido) bankSetBalance.invoke(b, saldo);
+                        }
+                        if (persistido) restante -= delBanco;
+                        else plugin.getLogger().warning("[SII] Retencion bancaria rechazada; saldo en memoria restaurado.");
                     }
                 } catch (ReflectiveOperationException | RuntimeException e) {
                     plugin.getLogger().log(Level.WARNING, "[SII] No pude retener del banco de " + p.getName(), e);
@@ -341,15 +370,29 @@ public final class EconomyWatchdog {
         return fiscalizados;
     }
 
-    /** Devuelve lo retenido al jugador (monedero; si no esta conectado, se paga por Vault offline). */
+    private void comprobarCuenta(OfflinePlayer target) {
+        Fiscalizacion f = fiscalizados.get(target.getUniqueId());
+        if (f == null) return;
+        Player online = target.getPlayer();
+        if (f.modalidad == null || online == null || !f.modalidad.equals(modalidad(online))) {
+            throw new IllegalStateException("Retencion conservada: requiere jugador conectado en la modalidad original; registros antiguos requieren revision manual.");
+        }
+    }
+
+    /** Devuelve lo retenido solo en la modalidad original y tras confirmar el abono. */
     public double liberar(OfflinePlayer target) {
-        Fiscalizacion f = fiscalizados.remove(target.getUniqueId());
+        comprobarCuenta(target);
+        Fiscalizacion f = fiscalizados.get(target.getUniqueId());
         if (f == null || f.retenido <= 0) {
             if (f == null) return -1;
+            fiscalizados.remove(target.getUniqueId());
             guardarRetenciones();
             return 0;
         }
-        economy.depositPlayer(target, f.retenido);
+        if (!economy.depositPlayer(target, f.retenido).transactionSuccess()) {
+            throw new IllegalStateException("Abono rechazado: la retencion sigue pendiente.");
+        }
+        fiscalizados.remove(target.getUniqueId());
         guardarRetenciones();
         plugin.getLogger().info("[SII] Liberados " + MONEY.format(f.retenido) + " a " + target.getName());
         return f.retenido;
@@ -357,6 +400,7 @@ public final class EconomyWatchdog {
 
     /** Confisca definitivamente lo retenido (queda solo en el registro). */
     public double confiscar(OfflinePlayer target) {
+        comprobarCuenta(target);
         Fiscalizacion f = fiscalizados.remove(target.getUniqueId());
         if (f == null) return -1;
         guardarRetenciones();
@@ -366,11 +410,13 @@ public final class EconomyWatchdog {
     }
 
     public void congelar(Player target, double horas, String motivo) {
+        comprobarCuenta(target);
         Fiscalizacion f = fiscalizados.computeIfAbsent(target.getUniqueId(), k -> new Fiscalizacion());
         f.desde = System.currentTimeMillis();
         f.hasta = f.desde + (long) (horas * 3600_000L);
         f.base = patrimonio(target);
         f.motivo = motivo;
+        f.modalidad = modalidad(target);
         guardarRetenciones();
         target.sendMessage(color("&6[SII] &cTu cuenta queda fiscalizada " + horas + " h por el staff: " + motivo));
     }
@@ -387,6 +433,7 @@ public final class EconomyWatchdog {
             y.set(k + ".retenido", f.retenido);
             y.set(k + ".motivo", f.motivo);
             y.set(k + ".desde", f.desde);
+            y.set(k + ".modalidad", f.modalidad);
         }
         try {
             y.save(ficheroRetenciones);
@@ -406,6 +453,7 @@ public final class EconomyWatchdog {
                 f.retenido = y.getDouble(k + ".retenido");
                 f.motivo = y.getString(k + ".motivo", "");
                 f.desde = y.getLong(k + ".desde");
+                f.modalidad = y.getString(k + ".modalidad");
                 fiscalizados.put(UUID.fromString(k), f);
             } catch (IllegalArgumentException ignored) {
             }
@@ -453,6 +501,7 @@ public final class EconomyWatchdog {
             OfflinePlayer op = Bukkit.getOfflinePlayer(e.getKey());
             Fiscalizacion f = e.getValue();
             out.add((op.getName() != null ? op.getName() : e.getKey().toString()) + ": retenido ₯" + MONEY.format(f.retenido)
+                    + ", " + (f.modalidad == null ? "modalidad pendiente de revision" : f.modalidad)
                     + ", " + horasRestantes(f) + " h, " + f.motivo);
         }
         return String.join("\n", out);
