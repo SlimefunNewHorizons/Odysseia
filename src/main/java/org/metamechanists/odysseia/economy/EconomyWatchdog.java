@@ -5,6 +5,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.configuration.ConfigurationSection;
+import org.bukkit.configuration.InvalidConfigurationException;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.RegisteredServiceProvider;
@@ -15,6 +16,12 @@ import org.metamechanists.odysseia.utils.WebhookSender;
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Method;
+import java.nio.ByteBuffer;
+import java.nio.channels.FileChannel;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.StandardCopyOption;
+import java.nio.file.StandardOpenOption;
 import java.text.DecimalFormat;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
@@ -25,6 +32,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.UUID;
 import java.util.logging.Level;
+import java.util.function.BooleanSupplier;
 
 /**
  * Servicio de Impuestos Internos (SII): vigilante de la economia.
@@ -55,6 +63,8 @@ public final class EconomyWatchdog {
     private static final DecimalFormat MONEY = new DecimalFormat("#,##0");
 
     private record Sample(long at, double total) {}
+    private enum TipoMovimiento { RETENER_VAULT, RETENER_BANCO, LIBERAR_VAULT }
+    private record Movimiento(String id, TipoMovimiento tipo, double monto, double saldoAntes, long desde) {}
 
     /** Estado de una cuenta fiscalizada. */
     public static final class Fiscalizacion {
@@ -64,6 +74,7 @@ public final class EconomyWatchdog {
         public String motivo;
         public long desde;
         public String modalidad;    // null: registro antiguo, requiere revision sin mover dinero
+        private Movimiento pendiente; // Resultado incierto: nunca reproducir automaticamente.
     }
 
     private final JavaPlugin plugin;
@@ -73,6 +84,8 @@ public final class EconomyWatchdog {
     private final File ficheroRetenciones;
     private Economy economy;
     private int taskId = -1;
+    private boolean retencionesCargadas;
+    private boolean persistenciaSegura = true;
 
     // sBank por reflexion (softdepend), con API global antigua y cuentas por modalidad.
     private Method sbankGetBanks;
@@ -134,7 +147,12 @@ public final class EconomyWatchdog {
             return;
         }
         hookSBank();
-        cargarRetenciones();
+        try {
+            cargarRetenciones();
+        } catch (IllegalStateException e) {
+            plugin.getLogger().log(Level.SEVERE, "[SII] Persistencia no disponible; vigilancia detenida sin mover dinero.", e);
+            return;
+        }
         long periodo = Math.max(5, cfg().getLong("poll-seconds", 20)) * 20L;
         taskId = Bukkit.getScheduler().runTaskTimer(plugin, this::tick, periodo, periodo).getTaskId();
         plugin.getLogger().info("[SII] Vigilante de economia activo: ventana " + (ventanaMs() / 1000) + "s, umbral "
@@ -147,7 +165,7 @@ public final class EconomyWatchdog {
             Bukkit.getScheduler().cancelTask(taskId);
             taskId = -1;
         }
-        guardarRetenciones();
+        if (retencionesCargadas && persistenciaSegura) guardarRetenciones();
     }
 
     private void hookSBank() {
@@ -244,8 +262,10 @@ public final class EconomyWatchdog {
     }
 
     private void tick() {
+        if (!persistenciaSegura) return;
         long ahora = System.currentTimeMillis();
         for (Player p : Bukkit.getOnlinePlayers()) {
+            if (!persistenciaSegura) break;
             if (p.hasPermission("odysseia.sii.exempt")) continue;
             double total;
             String modalidad;
@@ -259,21 +279,30 @@ public final class EconomyWatchdog {
             if (!modalidad.equals(modalidadMuestras.put(id, modalidad))) muestras.remove(id);
             Fiscalizacion f = fiscalizados.get(id);
             if (f != null) {
+                if (f.pendiente != null) continue;
                 // Una fiscalizacion por jugador: queda en pausa fuera de su cuenta original.
                 // Los registros antiguos sin modalidad se conservan para revision manual.
                 if (!modalidad.equals(f.modalidad)) continue;
                 if (ahora >= f.hasta) {
                     if (f.retenido > 0) continue; // No perder la deuda al terminar el plazo.
-                    fiscalizados.remove(id);
-                    guardarRetenciones();
+                    try {
+                        eliminarFiscalizacion(id, f);
+                    } catch (IllegalStateException e) {
+                        plugin.getLogger().log(Level.WARNING, "[SII] No pude cerrar la fiscalizacion.", e);
+                        continue;
+                    }
                     p.sendMessage(color("&6[SII] &aTu cuenta salio de fiscalizacion. "
                             + (f.retenido > 0 ? "Hay &e₯" + MONEY.format(f.retenido) + " &aretenidos a la espera del staff." : "")));
                 } else {
                     double exceso = total - f.base - tolerancia();
                     if (exceso > 0) {
-                        double ret = retener(p, exceso);
-                        f.retenido += ret;
-                        guardarRetenciones();
+                        double ret;
+                        try {
+                            ret = retener(p, exceso);
+                        } catch (IllegalStateException e) {
+                            plugin.getLogger().log(Level.WARNING, "[SII] Retencion pausada; requiere conciliacion antes de reintentar.", e);
+                            continue;
+                        }
                         p.sendMessage(color("&6[SII] &cCuenta en fiscalizacion: &e₯" + MONEY.format(ret)
                                 + " &cretenidos hasta revision del staff. Quedan &f" + horasRestantes(f) + " h&c."));
                     }
@@ -288,10 +317,14 @@ public final class EconomyWatchdog {
             }
             double gananciaVentana = total - minimoDesde(cola, ahora - ventanaMs());
             double gananciaHora = total - minimoDesde(cola, ahora - 3600_000L);
-            if (gananciaVentana > umbralVentana()) {
-                disparar(p, total, gananciaVentana, umbralVentana(), "+" + MONEY.format(gananciaVentana) + " en " + (ventanaMs() / 60000) + " min");
-            } else if (gananciaHora > umbralHora()) {
-                disparar(p, total, gananciaHora, umbralHora(), "+" + MONEY.format(gananciaHora) + " en 1 h");
+            try {
+                if (gananciaVentana > umbralVentana()) {
+                    disparar(p, total, gananciaVentana, umbralVentana(), "+" + MONEY.format(gananciaVentana) + " en " + (ventanaMs() / 60000) + " min");
+                } else if (gananciaHora > umbralHora()) {
+                    disparar(p, total, gananciaHora, umbralHora(), "+" + MONEY.format(gananciaHora) + " en 1 h");
+                }
+            } catch (IllegalStateException e) {
+                plugin.getLogger().log(Level.WARNING, "[SII] Fiscalizacion pausada; no se reintenta el movimiento incierto.", e);
             }
         }
     }
@@ -306,16 +339,18 @@ public final class EconomyWatchdog {
 
     private void disparar(Player p, double total, double ganancia, double umbral, String detalle) {
         double exceso = ganancia - umbral;
-        double retenido = exceso > 0 ? retener(p, exceso) : 0;
+        asegurarPersistencia();
         Fiscalizacion f = new Fiscalizacion();
         f.desde = System.currentTimeMillis();
         f.hasta = f.desde + congelacionMs();
-        f.base = patrimonio(p);
-        f.retenido = retenido;
+        f.base = total;
         f.motivo = detalle;
         f.modalidad = modalidad(p);
         fiscalizados.put(p.getUniqueId(), f);
         muestras.remove(p.getUniqueId());
+        guardarRetenciones();
+        double retenido = exceso > 0 ? retener(p, exceso) : 0;
+        f.base = total - retenido;
         guardarRetenciones();
 
         p.sendMessage(color("&6&l[SII] &e¡Hey, mas despacio, gran economista!"));
@@ -332,11 +367,14 @@ public final class EconomyWatchdog {
 
     /** Saca `monto` del monedero y, si no alcanza, del banco. Devuelve lo que realmente se retuvo. */
     private double retener(Player p, double monto) {
+        comprobarCuenta(p);
+        if (!Double.isFinite(monto) || monto < 0) throw new IllegalArgumentException("Monto invalido.");
         double restante = monto;
         double cartera = economy.getBalance(p);
         double delMonedero = Math.min(cartera, restante);
-        if (delMonedero > 0 && economy.withdrawPlayer(p, delMonedero).transactionSuccess()) {
-            restante -= delMonedero;
+        if (delMonedero > 0) {
+            restante -= mover(p, TipoMovimiento.RETENER_VAULT, delMonedero, cartera,
+                    () -> economy.withdrawPlayer(p, delMonedero).transactionSuccess());
         }
         if (restante > 0.01 && sbankGetBanks != null) {
             Object b = bancoDe(p);
@@ -345,19 +383,30 @@ public final class EconomyWatchdog {
                     double saldo = (double) bankGetBalance.invoke(b);
                     double delBanco = Math.min(saldo, restante);
                     if (delBanco > 0) {
-                        boolean persistido = false;
-                        try {
-                            bankSetBalance.invoke(b, saldo - delBanco);
-                            Object resultado = sbankPersist.invoke(null, b);
-                            persistido = sbankPersist.getReturnType() == void.class || Boolean.TRUE.equals(resultado);
-                        } finally {
-                            if (!persistido) bankSetBalance.invoke(b, saldo);
-                        }
-                        if (persistido) restante -= delBanco;
-                        else plugin.getLogger().warning("[SII] Retencion bancaria rechazada; saldo en memoria restaurado.");
+                        restante -= mover(p, TipoMovimiento.RETENER_BANCO, delBanco, saldo, () -> {
+                            boolean persistido = false;
+                            try {
+                                bankSetBalance.invoke(b, saldo - delBanco);
+                                Object resultado = sbankPersist.invoke(null, b);
+                                persistido = sbankPersist.getReturnType() == void.class || Boolean.TRUE.equals(resultado);
+                                // sBank devuelve false al capturar SQLException: no demuestra ausencia de commit.
+                                if (!persistido) throw new IllegalStateException("Persistencia bancaria rechazada; requiere conciliacion.");
+                                return persistido;
+                            } catch (ReflectiveOperationException e) {
+                                throw new IllegalStateException("Resultado bancario incierto.", e);
+                            } finally {
+                                if (!persistido) {
+                                    try {
+                                        bankSetBalance.invoke(b, saldo);
+                                    } catch (ReflectiveOperationException e) {
+                                        throw new IllegalStateException("No pude restaurar la cache bancaria.", e);
+                                    }
+                                }
+                            }
+                        });
                     }
-                } catch (ReflectiveOperationException | RuntimeException e) {
-                    plugin.getLogger().log(Level.WARNING, "[SII] No pude retener del banco de " + p.getName(), e);
+                } catch (ReflectiveOperationException e) {
+                    throw new IllegalStateException("No pude consultar el banco antes de retener.", e);
                 }
             }
         }
@@ -371,9 +420,13 @@ public final class EconomyWatchdog {
     }
 
     private void comprobarCuenta(OfflinePlayer target) {
+        asegurarPersistencia();
         Fiscalizacion f = fiscalizados.get(target.getUniqueId());
         if (f == null) return;
         Player online = target.getPlayer();
+        if (f.pendiente != null) {
+            throw new IllegalStateException("Movimiento pendiente de conciliacion: no se permite repetir ni eliminar la reclamacion.");
+        }
         if (f.modalidad == null || online == null || !f.modalidad.equals(modalidad(online))) {
             throw new IllegalStateException("Retencion conservada: requiere jugador conectado en la modalidad original; registros antiguos requieren revision manual.");
         }
@@ -385,15 +438,14 @@ public final class EconomyWatchdog {
         Fiscalizacion f = fiscalizados.get(target.getUniqueId());
         if (f == null || f.retenido <= 0) {
             if (f == null) return -1;
-            fiscalizados.remove(target.getUniqueId());
-            guardarRetenciones();
+            eliminarFiscalizacion(target.getUniqueId(), f);
             return 0;
         }
-        if (!economy.depositPlayer(target, f.retenido).transactionSuccess()) {
+        double monto = f.retenido;
+        if (mover(target.getPlayer(), TipoMovimiento.LIBERAR_VAULT, monto, economy.getBalance(target),
+                () -> economy.depositPlayer(target, monto).transactionSuccess()) == 0) {
             throw new IllegalStateException("Abono rechazado: la retencion sigue pendiente.");
         }
-        fiscalizados.remove(target.getUniqueId());
-        guardarRetenciones();
         plugin.getLogger().info("[SII] Liberados " + MONEY.format(f.retenido) + " a " + target.getName());
         return f.retenido;
     }
@@ -401,9 +453,9 @@ public final class EconomyWatchdog {
     /** Confisca definitivamente lo retenido (queda solo en el registro). */
     public double confiscar(OfflinePlayer target) {
         comprobarCuenta(target);
-        Fiscalizacion f = fiscalizados.remove(target.getUniqueId());
+        Fiscalizacion f = fiscalizados.get(target.getUniqueId());
         if (f == null) return -1;
-        guardarRetenciones();
+        eliminarFiscalizacion(target.getUniqueId(), f);
         registrarConfiscacion(target, f);
         plugin.getLogger().info("[SII] Confiscados " + MONEY.format(f.retenido) + " a " + target.getName());
         return f.retenido;
@@ -411,19 +463,80 @@ public final class EconomyWatchdog {
 
     public void congelar(Player target, double horas, String motivo) {
         comprobarCuenta(target);
-        Fiscalizacion f = fiscalizados.computeIfAbsent(target.getUniqueId(), k -> new Fiscalizacion());
+        Fiscalizacion anterior = fiscalizados.get(target.getUniqueId());
+        Fiscalizacion f = new Fiscalizacion();
+        f.retenido = anterior == null ? 0 : anterior.retenido;
         f.desde = System.currentTimeMillis();
         f.hasta = f.desde + (long) (horas * 3600_000L);
         f.base = patrimonio(target);
         f.motivo = motivo;
         f.modalidad = modalidad(target);
-        guardarRetenciones();
+        fiscalizados.put(target.getUniqueId(), f);
+        try {
+            guardarRetenciones();
+        } catch (IllegalStateException e) {
+            if (anterior == null) fiscalizados.remove(target.getUniqueId());
+            else fiscalizados.put(target.getUniqueId(), anterior);
+            throw e;
+        }
         target.sendMessage(color("&6[SII] &cTu cuenta queda fiscalizada " + horas + " h por el staff: " + motivo));
     }
 
     // ------------------------------------------------------------------ persistencia / avisos
 
+    private void asegurarPersistencia() {
+        if (!persistenciaSegura) throw new IllegalStateException("Persistencia SII bloqueada hasta revision y reinicio del servicio.");
+        if (!retencionesCargadas) cargarRetenciones();
+    }
+
+    /** Intencion durable antes del efecto externo; una caida nunca provoca replay automatico. */
+    private double mover(Player player, TipoMovimiento tipo, double monto, double saldoAntes, BooleanSupplier accion) {
+        comprobarCuenta(player);
+        Fiscalizacion f = fiscalizados.get(player.getUniqueId());
+        if (f == null || !Double.isFinite(monto) || monto <= 0 || !Double.isFinite(saldoAntes)
+                || !Double.isFinite(f.retenido) || f.retenido < 0
+                || !Double.isFinite(f.retenido + monto)) {
+            throw new IllegalStateException("Movimiento sin fiscalizacion o saldo valido.");
+        }
+        Movimiento movimiento = new Movimiento(UUID.randomUUID().toString(), tipo, monto, saldoAntes, System.currentTimeMillis());
+        f.pendiente = movimiento;
+        guardarRetenciones(); // Si falla, no se toca Vault ni sBank.
+        boolean confirmado;
+        try {
+            confirmado = accion.getAsBoolean();
+        } catch (RuntimeException e) {
+            // La API externa puede haber aplicado el cambio antes de lanzar la excepcion.
+            throw new IllegalStateException("Resultado externo incierto; intencion conservada sin reintento.", e);
+        }
+        double retenidoAnterior = f.retenido;
+        if (confirmado) {
+            if (tipo == TipoMovimiento.LIBERAR_VAULT) fiscalizados.remove(player.getUniqueId());
+            else f.retenido += monto;
+        }
+        f.pendiente = null;
+        try {
+            guardarRetenciones();
+        } catch (IllegalStateException e) {
+            f.retenido = retenidoAnterior;
+            f.pendiente = movimiento;
+            fiscalizados.put(player.getUniqueId(), f);
+            throw e;
+        }
+        return confirmado ? monto : 0;
+    }
+
+    private void eliminarFiscalizacion(UUID id, Fiscalizacion f) {
+        fiscalizados.remove(id);
+        try {
+            guardarRetenciones();
+        } catch (IllegalStateException e) {
+            fiscalizados.put(id, f);
+            throw e;
+        }
+    }
+
     private synchronized void guardarRetenciones() {
+        asegurarPersistencia();
         YamlConfiguration y = new YamlConfiguration();
         for (Map.Entry<UUID, Fiscalizacion> e : fiscalizados.entrySet()) {
             String k = e.getKey().toString();
@@ -434,19 +547,55 @@ public final class EconomyWatchdog {
             y.set(k + ".motivo", f.motivo);
             y.set(k + ".desde", f.desde);
             y.set(k + ".modalidad", f.modalidad);
+            if (f.pendiente != null) {
+                Movimiento m = f.pendiente;
+                y.set(k + ".movimiento.id", m.id());
+                y.set(k + ".movimiento.tipo", m.tipo().name());
+                y.set(k + ".movimiento.monto", m.monto());
+                y.set(k + ".movimiento.saldo-antes", m.saldoAntes());
+                y.set(k + ".movimiento.desde", m.desde());
+            }
         }
+        java.nio.file.Path temporal = null;
         try {
-            y.save(ficheroRetenciones);
-        } catch (IOException e) {
-            plugin.getLogger().log(Level.WARNING, "[SII] No pude guardar sii-retenciones.yml", e);
+            java.nio.file.Path destino = ficheroRetenciones.toPath().toAbsolutePath();
+            Files.createDirectories(destino.getParent());
+            temporal = Files.createTempFile(destino.getParent(), ".sii-retenciones-", ".tmp");
+            try (FileChannel canal = FileChannel.open(temporal, StandardOpenOption.WRITE)) {
+                ByteBuffer datos = StandardCharsets.UTF_8.encode(y.saveToString());
+                while (datos.hasRemaining()) canal.write(datos);
+                canal.force(true);
+            }
+            Files.move(temporal, destino, StandardCopyOption.ATOMIC_MOVE, StandardCopyOption.REPLACE_EXISTING);
+            try (FileChannel directorio = FileChannel.open(destino.getParent(), StandardOpenOption.READ)) {
+                directorio.force(true);
+            }
+        } catch (IOException | RuntimeException e) {
+            persistenciaSegura = false;
+            throw new IllegalStateException("No pude confirmar persistencia SII; movimientos detenidos.", e);
+        } finally {
+            if (temporal != null) {
+                try { Files.deleteIfExists(temporal); }
+                catch (IOException e) { plugin.getLogger().warning("[SII] Temporal de persistencia pendiente de limpieza."); }
+            }
         }
     }
 
     private void cargarRetenciones() {
-        if (!ficheroRetenciones.isFile()) return;
-        YamlConfiguration y = YamlConfiguration.loadConfiguration(ficheroRetenciones);
-        for (String k : y.getKeys(false)) {
-            try {
+        if (retencionesCargadas) return;
+        if (!persistenciaSegura) throw new IllegalStateException("Persistencia SII bloqueada.");
+        YamlConfiguration y = new YamlConfiguration();
+        Map<UUID, Fiscalizacion> cargadas = new HashMap<>();
+        try {
+            if (ficheroRetenciones.exists()) y.load(ficheroRetenciones);
+            for (String k : y.getKeys(false)) {
+                UUID id = UUID.fromString(k);
+                if (!y.isConfigurationSection(k)) throw new IllegalArgumentException("Registro SII invalido.");
+                for (String campo : List.of("hasta", "base", "retenido", "desde")) {
+                    if (!(y.get(k + "." + campo) instanceof Number)) {
+                        throw new IllegalArgumentException("Campo numerico SII invalido.");
+                    }
+                }
                 Fiscalizacion f = new Fiscalizacion();
                 f.hasta = y.getLong(k + ".hasta");
                 f.base = y.getDouble(k + ".base");
@@ -454,10 +603,28 @@ public final class EconomyWatchdog {
                 f.motivo = y.getString(k + ".motivo", "");
                 f.desde = y.getLong(k + ".desde");
                 f.modalidad = y.getString(k + ".modalidad");
-                fiscalizados.put(UUID.fromString(k), f);
-            } catch (IllegalArgumentException ignored) {
+                if (!Double.isFinite(f.base) || !Double.isFinite(f.retenido) || f.retenido < 0) {
+                    throw new IllegalArgumentException("Saldo SII invalido.");
+                }
+                if (y.contains(k + ".movimiento")) {
+                    String m = k + ".movimiento";
+                    String idMovimiento = UUID.fromString(y.getString(m + ".id", "")).toString();
+                    TipoMovimiento tipo = TipoMovimiento.valueOf(y.getString(m + ".tipo", ""));
+                    double monto = y.getDouble(m + ".monto", Double.NaN);
+                    double saldo = y.getDouble(m + ".saldo-antes", Double.NaN);
+                    if (!Double.isFinite(monto) || monto <= 0 || !Double.isFinite(saldo) || f.modalidad == null) {
+                        throw new IllegalArgumentException("Intencion SII invalida.");
+                    }
+                    f.pendiente = new Movimiento(idMovimiento, tipo, monto, saldo, y.getLong(m + ".desde"));
+                }
+                cargadas.put(id, f);
             }
+        } catch (IOException | InvalidConfigurationException | IllegalArgumentException e) {
+            persistenciaSegura = false;
+            throw new IllegalStateException("Retenciones ilegibles; se conserva el archivo sin mover dinero.", e);
         }
+        fiscalizados.putAll(cargadas);
+        retencionesCargadas = true;
     }
 
     private void registrarConfiscacion(OfflinePlayer target, Fiscalizacion f) {
@@ -502,7 +669,8 @@ public final class EconomyWatchdog {
             Fiscalizacion f = e.getValue();
             out.add((op.getName() != null ? op.getName() : e.getKey().toString()) + ": retenido ₯" + MONEY.format(f.retenido)
                     + ", " + (f.modalidad == null ? "modalidad pendiente de revision" : f.modalidad)
-                    + ", " + horasRestantes(f) + " h, " + f.motivo);
+                    + ", " + horasRestantes(f) + " h, " + f.motivo
+                    + (f.pendiente == null ? "" : ", movimiento pendiente de conciliacion (sin reintento)"));
         }
         return String.join("\n", out);
     }
