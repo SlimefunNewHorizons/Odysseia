@@ -72,8 +72,10 @@ public final class EconomyWatchdog {
     private Economy economy;
     private int taskId = -1;
 
-    // sBank por reflexion (softdepend): SBank.getBanks() -> Map<String, Bank>; Bank.getBalance/setBalance; SBank.persistBank(Bank)
+    // sBank por reflexion (softdepend), con API global antigua y cuentas por modalidad.
     private Method sbankGetBanks;
+    private Method sbankKey;
+    private Method modalityOf;
     private Method sbankPersist;
     private Method bankGetBalance;
     private Method bankSetBalance;
@@ -153,16 +155,40 @@ public final class EconomyWatchdog {
         try {
             Class<?> sbank = Class.forName("com.spearforge.sBank.SBank");
             Class<?> bank = Class.forName("com.spearforge.sBank.model.Bank");
-            sbankGetBanks = sbank.getMethod("getBanks");
-            sbankPersist = sbank.getMethod("persistBank", bank);
-            sbankGetDb = sbank.getMethod("getDb");
-            bankGetBalance = bank.getMethod("getBalance");
-            bankSetBalance = bank.getMethod("setBalance", double.class);
-            dbGetBank = sbankGetDb.invoke(null).getClass().getMethod("getBank", String.class);
+            Class<?> modality;
+            try {
+                modality = Class.forName("com.spearforge.sBank.model.Modality");
+            } catch (ClassNotFoundException legacy) {
+                modality = null;
+            }
+            hookSBank(sbank, bank, modality);
         } catch (ReflectiveOperationException | RuntimeException e) {
             plugin.getLogger().log(Level.WARNING, "[SII] No pude enlazar sBank por reflexion; solo se vigila el monedero.", e);
             sbankGetBanks = null;
         }
+    }
+
+    void hookSBank(Class<?> sbank, Class<?> bank, Class<?> modality) throws ReflectiveOperationException {
+        // No publicar un enlace parcial si alguna firma requerida resulta incompatible.
+        sbankGetBanks = null;
+        sbankKey = null;
+        modalityOf = null;
+        sbankPersist = sbank.getMethod("persistBank", bank);
+        sbankGetDb = sbank.getMethod("getDb");
+        bankGetBalance = bank.getMethod("getBalance");
+        bankSetBalance = bank.getMethod("setBalance", double.class);
+        Class<?> database = sbankGetDb.invoke(null).getClass();
+        try {
+            dbGetBank = database.getMethod("getBank", String.class, String.class);
+            if (modality == null) throw new ClassNotFoundException("sBank Modality");
+            sbankKey = sbank.getMethod("key", Player.class);
+            modalityOf = modality.getMethod("of", String.class);
+        } catch (NoSuchMethodException incompatible) {
+            // Solo la ausencia de la firma nueva permite usar la API global antigua.
+            if (modality != null) throw incompatible;
+            dbGetBank = database.getMethod("getBank", String.class);
+        }
+        sbankGetBanks = sbank.getMethod("getBanks");
     }
 
     // ------------------------------------------------------------------ lectura de patrimonio
@@ -172,9 +198,14 @@ public final class EconomyWatchdog {
         if (sbankGetBanks == null) return null;
         try {
             Map<String, Object> banks = (Map<String, Object>) sbankGetBanks.invoke(null);
-            Object b = banks.get(player.getName());
+            String key = sbankKey == null ? player.getName() : (String) sbankKey.invoke(null, player);
+            Object b = banks.get(key);
             if (b == null && dbGetBank != null) {
-                b = dbGetBank.invoke(sbankGetDb.invoke(null), player.getName());
+                Object database = sbankGetDb.invoke(null);
+                b = sbankKey == null
+                        ? dbGetBank.invoke(database, player.getName())
+                        : dbGetBank.invoke(database, player.getName(),
+                                modalityOf.invoke(null, player.getWorld().getName()));
             }
             return b;
         } catch (ReflectiveOperationException | RuntimeException e) {

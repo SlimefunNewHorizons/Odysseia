@@ -53,6 +53,16 @@ and refuses unsupported worlds or an empty safe area. Staff RTP retains its
 existing main-world and permission restrictions. Set `bedrock-guard.rtp-enabled`
 to `false` to disable the guarded path without replacing the JAR.
 
+## sBank watchdog adapter (#689)
+
+The adapter reads both the legacy global sBank API and accounts keyed by
+modality. It uses the current world's account for cached and database reads;
+inspection does not create accounts or persist balances. Incomplete modern
+APIs disable the hook instead of falling back to a global account.
+The patch is pending deployment and a live server test on both target versions.
+Existing SII sampling and retention rules are unchanged; switching modalities
+requires a separate safety review before activating this candidate.
+
 ## ✨ Core Highlights
 
 - **💳 Idempotent Purchase & Delivery Engine** — State-machine commerce processor connected to Tebex Headless API. Backed by transactional SQLite WAL storage; prevents double-claims, supports dry-run validation, offline queues, and automatic chargeback audits.
