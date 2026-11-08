@@ -174,6 +174,7 @@ public final class ReloadCommand implements CommandExecutor, TabCompleter {
             return true;
         }
         org.bukkit.OfflinePlayer target = org.bukkit.Bukkit.getOfflinePlayer(args[2]);
+        try {
         switch (args[1].toLowerCase(java.util.Locale.ROOT)) {
             case "liberar" -> {
                 double r = sii.liberar(target);
@@ -198,6 +199,9 @@ public final class ReloadCommand implements CommandExecutor, TabCompleter {
                 sender.sendMessage(color("&a" + args[2] + " fiscalizado " + horas + " h."));
             }
             default -> sender.sendMessage(color("&eUso: &f/odysseia sii <estado|liberar|confiscar|congelar>"));
+        }
+        } catch (IllegalStateException e) {
+            sender.sendMessage(color("&c[SII] " + e.getMessage()));
         }
         return true;
     }

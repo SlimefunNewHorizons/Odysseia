@@ -60,8 +60,14 @@ modality. It uses the current world's account for cached and database reads;
 inspection does not create accounts or persist balances. Incomplete modern
 APIs disable the hook instead of falling back to a global account.
 The patch is pending deployment and a live server test on both target versions.
-Existing SII sampling and retention rules are unchanged; switching modalities
-requires a separate safety review before activating this candidate.
+The #690 candidate resets samples when modality changes and pauses the player's
+single fiscalization outside its original account. Legacy records without a
+modality remain quarantined; retained claims survive expiration. Failed bank
+persistence restores the cached balance, and rejected Vault credits preserve
+the claim. Staff operations require the original modality and an online player.
+These guards have local regression tests; they are not deployed or live-tested.
+Activation also requires #691: durable coordination between money movements and
+the retention ledger. No production balances or stored records were migrated.
 
 ## ✨ Core Highlights
 
