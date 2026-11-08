@@ -66,8 +66,16 @@ modality remain quarantined; retained claims survive expiration. Failed bank
 persistence restores the cached balance, and rejected Vault credits preserve
 the claim. Staff operations require the original modality and an online player.
 These guards have local regression tests; they are not deployed or live-tested.
-Activation also requires #691: durable coordination between money movements and
-the retention ledger. No production balances or stored records were migrated.
+The #691 candidate writes and syncs an atomic ledger snapshot before each money
+movement. Crashes, provider exceptions and uncertain bank writes leave an intent
+that blocks retries and staff mutations until reconciled with the original
+provider. A confirmed operation saves its claim or removes a refunded claim;
+unreadable ledgers and failed writes stop further money movements. Disabled
+services never overwrite unloaded claims on shutdown. Vault and the ledger do
+not share a transaction: pending intents require evidence-based reconciliation,
+not automatic replay or restoration of an old ledger. Live tests, remote backup
+and hashes remain required before activation. No production balances or stored
+records were migrated.
 
 ## ✨ Core Highlights
 
