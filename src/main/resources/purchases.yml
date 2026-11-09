@@ -1,7 +1,7 @@
 # El rango 9000000-9000099 esta reservado para placeholders invalidos.
 # ProductCatalog y la suite de integridad rechazan cualquier reintroduccion.
 catalog-version: 1
-expected-product-count: 51
+expected-product-count: 52
 source: "DrakesCraft production audit 2026-07-10"
 
 products:
@@ -729,4 +729,20 @@ products:
       - {id: boost, type: CONSOLE_COMMAND, refund: NOT_REVOCABLE, parameters: {command: "evento boost xp 2.0 60"}}
       - {id: notify, type: NOTIFICATION, requires-online: true, required: false, refund: NOT_REVOCABLE, parameters: {message: "&a¡Has activado un Booster Global de EXP x2 por 1 hora!"}}
       - {id: announce, type: ANNOUNCEMENT, refund: NOT_REVOCABLE, parameters: {product: "Booster Global EXP x2 (1h)"}}
-
+  kit_navidad_2026:
+    tebex-package-id: 7800351
+    name: "Kit de Navidad 2026"
+    category: kits
+    description: "Kit cosmético y temático de edición limitada (1-31 dic). Entrega única por compra; no se entrega en mundos Clásico."
+    source: "Odysseia Navidad 2026"
+    version: 1
+    verification: VERIFIED_PRODUCTION
+    dependencies: [Vault]
+    # Reutilizable: en 2027/2028 se vende el mismo paquete Tebex; la ventana comercial vive en la web (availableWindows) y en Tebex (activar/desactivar). Metadato informativo, el cargador lo ignora.
+    available-windows: ["2026-12-01/2026-12-31", "2027-12-01/2027-12-31", "2028-12-01/2028-12-31"]
+    actions:
+      - {id: kit, type: KIT, requires-online: true, refund: MANUAL_REVIEW, parameters: {kit: navidad_2026}}
+      - {id: money, type: ECONOMY, refund: MANUAL_REVIEW, parameters: {amount: "20000"}}
+      - {id: perm-cosmetic, type: TEMPORARY_PERMISSION, refund: AUTO_REVOKE, parameters: {permission: "drakescraft.cosmetic.navidad", duration: 45d}}
+      - {id: notify, type: NOTIFICATION, requires-online: true, required: false, refund: NOT_REVOCABLE, parameters: {message: "&a¡Kit de Navidad 2026 entregado! Felices fiestas."}}
+      - {id: announce, type: ANNOUNCEMENT, refund: NOT_REVOCABLE, parameters: {product: "Kit de Navidad 2026"}}

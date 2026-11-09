@@ -4119,6 +4119,61 @@ kits:
       amount: 16
     - slimefun-item: ENHANCED_AUTO_CRAFTER
       amount: 1
+  navidad_2026:
+    # Kit Navidad: cosmetico y tematico, solo items vanilla (sin Slimefun, sin atributos, sin encantamientos).
+    # Vigencia comercial 1-31 dic (la imponen la web y Tebex); entrega unica por transaccion (PurchaseService).
+    # Permiso inexistente a proposito: solo se obtiene por compra, nunca por /kit.
+    cooldown: -1
+    permission: odysseia.kit.navidad_2026
+    vanilla-items:
+    - material: LEATHER_HELMET
+      name: '&c&l🎄 Gorro de Navidad'
+      lore:
+      - '&7Gorro cosmético de la Navidad 2026.'
+      - '&7No otorga ventajas de combate.'
+      trim-material: quartz
+      trim-pattern: coast
+      soulbound: true
+      hide-flags: true
+      pdc:
+        "odysseia:navidad_2026": "1"
+    - material: WRITTEN_BOOK
+      name: '&a&lTarjeta de Navidad 2026'
+      book-title: 'Tarjeta de Navidad 2026'
+      author: 'Staff DrakesCraft'
+      pages:
+      - '&4&lFelices Fiestas\n\n&0Gracias por jugar en DrakesCraft este 2026.\n\nQue tu isla, tu base y tu equipo pasen unas fiestas cálidas.\n\n&2- El equipo de DrakesCraft'
+      - '&0Este kit es de edición limitada: solo se vende del 1 al 31 de diciembre y es puramente cosmético y de ambiente.'
+    - material: COOKIE
+      amount: 32
+      name: '&6Galleta de jengibre'
+    - material: PUMPKIN_PIE
+      amount: 16
+      name: '&cPan de Pascua'
+    - material: HONEY_BOTTLE
+      amount: 6
+      name: '&6Chocolate caliente'
+    - material: SPRUCE_SAPLING
+      amount: 4
+      name: '&2Arbolito de Navidad'
+    - material: RED_CANDLE
+      amount: 8
+      name: '&cVela roja de Navidad'
+    - material: GREEN_CANDLE
+      amount: 8
+      name: '&2Vela verde de Navidad'
+    - material: LANTERN
+      amount: 4
+      name: '&eFarol de Navidad'
+    - material: CARVED_PUMPKIN
+      amount: 2
+      name: '&fCabeza de Muñeco de Nieve'
+      lore:
+      - '&7Pon 2 bloques de nieve y esta cabeza para armar'
+      - '&7a tu mascota Muñeco de Nieve.'
+    - material: SNOW_BLOCK
+      amount: 4
+      name: '&fBloque de nieve'
 polis-baseline:
   enabled: true
   default-group: default
