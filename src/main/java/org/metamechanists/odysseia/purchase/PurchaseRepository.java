@@ -11,7 +11,8 @@ public final class PurchaseRepository implements AutoCloseable {
     private static final List<String> MIGRATIONS = List.of(
             "db/migration/V1__purchase_engine.sql",
             "db/migration/V2__financial_events.sql",
-            "db/migration/V3__player_identities.sql");
+            "db/migration/V3__player_identities.sql",
+            "db/migration/V4__renewals.sql");
     private final Connection connection;
 
     public PurchaseRepository(File database) throws SQLException, IOException {
@@ -253,6 +254,18 @@ public final class PurchaseRepository implements AutoCloseable {
         try (PreparedStatement insert = connection.prepareStatement("INSERT OR IGNORE INTO purchase_financial_events(provider,transaction_id,product_id,event_type,actor,created_at) VALUES(?,?,?,?,?,?)")) {
             insert.setString(1, provider); insert.setString(2, transaction); insert.setString(3, product);
             insert.setString(4, type); insert.setString(5, actor); insert.setString(6, now()); return insert.executeUpdate() == 1;
+        }
+    }
+
+    public synchronized boolean hasRenewal(long deliveryId, String ref) throws SQLException {
+        try (PreparedStatement q = connection.prepareStatement("SELECT 1 FROM purchase_renewals WHERE delivery_id=? AND renewal_ref=?")) {
+            q.setLong(1, deliveryId); q.setString(2, ref); return q.executeQuery().next();
+        }
+    }
+
+    public synchronized boolean registerRenewal(long deliveryId, String ref, String actor) throws SQLException {
+        try (PreparedStatement i = connection.prepareStatement("INSERT OR IGNORE INTO purchase_renewals(delivery_id,renewal_ref,actor,created_at) VALUES(?,?,?,?)")) {
+            i.setLong(1, deliveryId); i.setString(2, ref); i.setString(3, actor); i.setString(4, now()); return i.executeUpdate() == 1;
         }
     }
 

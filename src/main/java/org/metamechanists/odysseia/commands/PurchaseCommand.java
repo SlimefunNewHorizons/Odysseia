@@ -21,6 +21,7 @@ public final class PurchaseCommand implements CommandExecutor {
         try {
             return switch (args[0].toLowerCase()) {
                 case "deliver" -> args.length == 4 ? deliver(sender, service, args) : usage(sender, label);
+                case "renew" -> args.length == 4 || args.length == 5 ? renew(sender, service, args) : usage(sender, label);
                 case "test" -> args.length == 3 ? test(sender, service, args) : usage(sender, label);
                 case "dry-run" -> args.length == 3 ? result(sender, service.deliver("dry-run:" + System.nanoTime(), args[1], args[2], true, sender.getName())) : usage(sender, label);
                 case "retry" -> args.length == 2 ? result(sender, service.retry(args[1], sender.getName())) : usage(sender, label);
@@ -54,6 +55,11 @@ public final class PurchaseCommand implements CommandExecutor {
         return result(sender, service.deliver(delivery.transaction(), delivery.player(), delivery.productId(), false, sender.getName()));
     }
 
+    private boolean renew(CommandSender sender, PurchaseService service, String[] args) {
+        DeliveryArguments d = DeliveryArguments.from(service.catalog(), args[1], args[2], args[3]);
+        return result(sender, service.renew(d.transaction(), d.player(), d.productId(), args.length == 5 ? args[4] : null, sender.getName()));
+    }
+
     /**
      * Prueba operativa del mismo circuito que invoca Tebex: registra la compra,
      * entrega las acciones del producto y encola su anuncio/webhook. Se limita a
@@ -82,5 +88,5 @@ public final class PurchaseCommand implements CommandExecutor {
 
     private boolean result(CommandSender sender, PurchaseService.Result result) { return message(sender, result.success(), result.message()); }
     private boolean message(CommandSender sender, boolean ok, String value) { sender.sendMessage((ok ? ChatColor.GREEN : ChatColor.RED) + value); return true; }
-    private boolean usage(CommandSender sender, String label) { sender.sendMessage(ChatColor.YELLOW + "/" + label + " deliver <transaction> <username> <product_id> (Tebex legado: <username> <product_id> <transaction>) | test <username> <product_id> (sólo consola, entrega real) | dry-run <username> <product_id> | status|pending|history|retry|retry-action|refund|chargeback|validate|catalog|reconcile"); return true; }
+    private boolean usage(CommandSender sender, String label) { sender.sendMessage(ChatColor.YELLOW + "/" + label + " deliver <transaction> <username> <product_id> (Tebex legado: <username> <product_id> <transaction>) | test <username> <product_id> (sólo consola, entrega real) | dry-run <username> <product_id> | renew <transaction> <username> <product_id> [ref] (comando Renewal de Tebex) | status|pending|history|retry|retry-action|refund|chargeback|validate|catalog|reconcile"); return true; }
 }

@@ -177,7 +177,7 @@ class PurchaseServiceTest {
 
     @Test void packagedCatalogHasAllAuditedProductsAndNoDuplicateTebexIds() {
         ProductCatalog catalog = new ProductCatalog(new File("src/main/resources/purchases.yml"));
-        assertEquals(52, catalog.all().size());
+        assertEquals(51, catalog.all().size());
         assertTrue(catalog.validate().isEmpty());
         assertEquals(VerificationState.VERIFIED_PRODUCTION, catalog.get("protection_481").verification());
         assertEquals(ActionType.PROTECTION_STONE, catalog.get("protection_481").actions().getFirst().type());
@@ -260,6 +260,55 @@ class PurchaseServiceTest {
         assertEquals(PurchaseState.COMPLETED, resolving.status("txn-bedrock").getFirst().state());
     }
 
+    private PurchaseService subscriptionService() {
+        ProductDefinition sub = new ProductDefinition("sub_rank", 3, "Sub", "ranks", "t", "t", 1, VerificationState.VERIFIED_PRODUCTION, List.of(), List.of(
+                new ProductAction("rank", ActionType.LUCKPERMS_TEMPORARY, Map.of("group", "g", "duration", "30d"), false, RefundPolicy.AUTO_REVOKE, true),
+                new ProductAction("money", ActionType.ECONOMY, Map.of("amount", "1"), false, RefundPolicy.MANUAL_REVIEW, true),
+                new ProductAction("kit", ActionType.KIT, Map.of("kit", "k"), true, RefundPolicy.MANUAL_REVIEW, true),
+                new ProductAction("claim", ActionType.PROTECTION_STONE, Map.of("alias", "a"), true, RefundPolicy.MANUAL_REVIEW, true),
+                new ProductAction("announce", ActionType.ANNOUNCEMENT, Map.of(), false, RefundPolicy.NOT_REVOCABLE, true)));
+        return new PurchaseService(new ProductCatalog(List.of(sub)), repository, runtime);
+    }
+
+    @Test void renewalExtendsOnlyTimedActionsAndIsIdempotentPerRef() throws Exception {
+        runtime.online = true; service = subscriptionService();
+        service.deliver("sub-1", "TestPlayer", "sub_rank", false, "tebex");
+        assertTrue(service.renew("sub-1", "TestPlayer", "sub_rank", "r1", "tebex").success());
+        assertTrue(service.renew("sub-1", "TestPlayer", "sub_rank", "r1", "tebex").success());
+        assertEquals(2, runtime.calls(ActionType.LUCKPERMS_TEMPORARY));
+        assertEquals(1, runtime.calls(ActionType.ECONOMY));
+        assertEquals(1, runtime.calls(ActionType.KIT));
+        assertEquals(1, runtime.calls(ActionType.PROTECTION_STONE));
+        assertEquals(1, runtime.calls(ActionType.ANNOUNCEMENT));
+        assertTrue(service.renew("sub-1", "TestPlayer", "sub_rank", "r2", "tebex").success());
+        assertEquals(3, runtime.calls(ActionType.LUCKPERMS_TEMPORARY));
+        String result = repository.actions(service.status("sub-1").getFirst().id()).stream()
+                .filter(a -> a.type() == ActionType.LUCKPERMS_TEMPORARY).findFirst().orElseThrow().result();
+        assertEquals("group=g;previous=0;new=3000", result);
+    }
+
+    @Test void renewalWithUnknownTransactionFallsBackToPlayersLastCompletedPurchase() throws Exception {
+        runtime.online = true; service = subscriptionService();
+        service.deliver("sub-2", "TestPlayer", "sub_rank", false, "tebex");
+        assertTrue(service.renew("otro-id", "TestPlayer", "sub_rank", "r1", "tebex").success());
+        assertEquals(2, runtime.calls(ActionType.LUCKPERMS_TEMPORARY));
+        assertFalse(service.renew("otro-id", "Nadie", "sub_rank", "r1", "tebex").success());
+    }
+
+    @Test void renewalIsRejectedAfterRefundChargebackOrWithoutInitialDelivery() throws Exception {
+        runtime.online = true; service = subscriptionService();
+        assertFalse(service.renew("sub-x", "TestPlayer", "sub_rank", "r1", "tebex").success());
+        service.deliver("sub-3", "TestPlayer", "sub_rank", false, "tebex");
+        service.financialEvent("sub-3", "sub_rank", false, "admin");
+        assertFalse(service.renew("sub-3", "TestPlayer", "sub_rank", "r1", "tebex").success());
+        assertEquals(1, runtime.calls(ActionType.LUCKPERMS_TEMPORARY));
+    }
+
+    @Test void mergeKeepsOriginalPreviousAndLatestExpiry() {
+        assertEquals("group=g;previous=5;new=90", PurchaseService.mergeRenewalResult("group=g;previous=5;new=60", "group=g;previous=60;new=90"));
+        assertEquals("group=g;permanent=true", PurchaseService.mergeRenewalResult("group=g;permanent=true", "group=g;previous=1;new=2"));
+    }
+
     private ProductAction action(ProductCatalog catalog, String productId, String actionId) {
         return catalog.get(productId).actions().stream()
                 .filter(action -> action.id().equals(actionId))
@@ -286,6 +335,7 @@ class PurchaseServiceTest {
             if (action.requiresOnline() && !online) return ActionResult.waiting("offline");
             if (action.type() == ActionType.KIT && failKitOnce) { failKitOnce = false; return ActionResult.retryable("transient"); }
             if (action.type() == ActionType.ANNOUNCEMENT && failAnnouncementOnce) { failAnnouncementOnce = false; return ActionResult.retryable("webhook unavailable"); }
+            if (action.type() == ActionType.LUCKPERMS_TEMPORARY) { long n = counts.get(ActionType.LUCKPERMS_TEMPORARY); return ActionResult.completed("group=g;previous=" + (n - 1) * 1000 + ";new=" + n * 1000); }
             return ActionResult.completed(action.id());
         }
         @Override public ActionResult revoke(ExecutionContext context, ProductAction action, String result) { return ActionResult.completed("revoked"); }

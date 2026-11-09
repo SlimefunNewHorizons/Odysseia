@@ -96,7 +96,7 @@ commands:
   odysseiapurchase:
     description: Motor transaccional de entregas de tienda.
     permission: odysseia.purchase.admin
-    usage: /odysseiapurchase <deliver|test|status|pending|retry|history|validate|dry-run|refund|chargeback> ...
+    usage: /odysseiapurchase <deliver|renew|test|status|pending|retry|history|validate|dry-run|refund|chargeback> ...
   daily:
     description: Muestra la racha de recompensa diaria.
   restart30:

@@ -55,4 +55,21 @@ class TebexCatalogIntegrityTest {
         assertEquals(List.of(), errors,
                 "El catalogo Tebex contiene productos no publicables: " + String.join("; ", errors));
     }
+
+    @Test
+    void sfmasterIsNotBundledInRanksAndHalloweenKitIsRetired() {
+        YamlConfiguration purchases = YamlConfiguration.loadConfiguration(new File("src/main/resources/purchases.yml"));
+        ConfigurationSection products = purchases.getConfigurationSection("products");
+        assertEquals(false, products.contains("kit_halloween_tartaro"), "kit de temporada vencido: no debe entregarse");
+        List<String> errors = new ArrayList<>();
+        for (String id : products.getKeys(false)) {
+            if (id.startsWith("sfmaster_")) continue; // pases sueltos: solo se venden si el paquete Tebex esta activo
+            for (Map<?, ?> action : products.getMapList(id + ".actions")) {
+                String type = String.valueOf(action.get("type"));
+                if (type.startsWith("SFMASTER")) errors.add(id + ": " + type);
+                if (String.valueOf(action.get("parameters")).contains("{username}")) errors.add(id + ": {username} sin sustituir");
+            }
+        }
+        assertEquals(List.of(), errors);
+    }
 }

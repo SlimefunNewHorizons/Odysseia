@@ -1,7 +1,7 @@
 # El rango 9000000-9000099 esta reservado para placeholders invalidos.
 # ProductCatalog y la suite de integridad rechazan cualquier reintroduccion.
 catalog-version: 1
-expected-product-count: 52
+expected-product-count: 51
 source: "DrakesCraft production audit 2026-07-10"
 
 products:
@@ -169,11 +169,7 @@ products:
       - {id: money, type: ECONOMY, refund: MANUAL_REVIEW, parameters: {amount: "3000000"}}
       - {id: kit, type: KIT, requires-online: true, refund: MANUAL_REVIEW, parameters: {kit: poseidon}}
       - {id: claim, type: PROTECTION_STONE, requires-online: true, refund: MANUAL_REVIEW, parameters: {alias: vipposeidon, amount: "1"}}
-      # Pase SFMaster incluido en el rango. Va aparte del rango porque dura horas y no el mes
-      # entero: si se colgase del grupo poseidon expiraria a los 30 dias junto con todo lo demas.
-      - {id: sfmaster, type: SFMASTER_PASS, refund: AUTO_REVOKE, parameters: {group: sfmaster, duration: 24h}}
-      - {id: sfmaster-guide, type: SFMASTER_GUIDE, requires-online: true, refund: NOT_REVOCABLE}
-      - {id: notify, type: NOTIFICATION, requires-online: true, required: false, refund: NOT_REVOCABLE, parameters: {message: "&aCompra Poseidón entregada. &bIncluye 24 h de SFMaster."}}
+      - {id: notify, type: NOTIFICATION, requires-online: true, required: false, refund: NOT_REVOCABLE, parameters: {message: "&aCompra Poseidón entregada."}}
       - {id: announce, type: ANNOUNCEMENT, refund: NOT_REVOCABLE, parameters: {product: "Poseidón"}}
 
   titan_japeto:
@@ -263,10 +259,7 @@ products:
       - {id: money, type: ECONOMY, refund: MANUAL_REVIEW, parameters: {amount: "10000000"}}
       - {id: kit, type: KIT, requires-online: true, refund: MANUAL_REVIEW, parameters: {kit: titancaos}}
       - {id: claim, type: PROTECTION_STONE, requires-online: true, refund: MANUAL_REVIEW, parameters: {alias: titancaos, amount: "1"}}
-      # El pase del Titán dura mas que el de Poseidon: es el escalon de arriba y tiene que notarse.
-      - {id: sfmaster, type: SFMASTER_PASS, refund: AUTO_REVOKE, parameters: {group: sfmaster, duration: 72h}}
-      - {id: sfmaster-guide, type: SFMASTER_GUIDE, requires-online: true, refund: NOT_REVOCABLE}
-      - {id: notify, type: NOTIFICATION, requires-online: true, required: false, refund: NOT_REVOCABLE, parameters: {message: "&aCompra Titán Caos entregada. &bIncluye 72 h de SFMaster."}}
+      - {id: notify, type: NOTIFICATION, requires-online: true, required: false, refund: NOT_REVOCABLE, parameters: {message: "&aCompra Titán Caos entregada."}}
       - {id: announce, type: ANNOUNCEMENT, refund: NOT_REVOCABLE, parameters: {product: "Titán Caos"}}
 
   slimefun_research_all:
@@ -736,19 +729,4 @@ products:
       - {id: boost, type: CONSOLE_COMMAND, refund: NOT_REVOCABLE, parameters: {command: "evento boost xp 2.0 60"}}
       - {id: notify, type: NOTIFICATION, requires-online: true, required: false, refund: NOT_REVOCABLE, parameters: {message: "&a¡Has activado un Booster Global de EXP x2 por 1 hora!"}}
       - {id: announce, type: ANNOUNCEMENT, refund: NOT_REVOCABLE, parameters: {product: "Booster Global EXP x2 (1h)"}}
-  kit_halloween_tartaro:
-    tebex-package-id: 7707436
-    name: "Kit Legendario: Sombras del Tártaro (Halloween Edition)"
-    category: kits
-    description: "Kit mítico de edición limitada de Halloween. Armadura completa del Rey del Tártaro con inmunidad a radiación y +10 corazones, Guadaña espectral de Caronte con daño verdadero, 5 Cores Daxi de TranscEndence, Papa de Mar Espectral y 500,000 Dragmas."
-    source: "Odysseia Halloween Event 2026"
-    version: 1
-    verification: VERIFIED_PRODUCTION
-    dependencies: [Vault]
-    actions:
-      - {id: money, type: ECONOMY, refund: MANUAL_REVIEW, parameters: {amount: "500000"}}
-      - {id: kit, type: KIT, requires-online: true, refund: MANUAL_REVIEW, parameters: {kit: halloween_tartaro}}
-      - {id: tag, type: CONSOLE_COMMAND, refund: NOT_REVOCABLE, parameters: {command: "lp user {username} meta setsuffix 100 \" &8[&4🎃 TÁRTARO&8]\""}}
-      - {id: notify, type: NOTIFICATION, requires-online: true, required: false, refund: NOT_REVOCABLE, parameters: {message: "&4&l✦ ¡Has reclamado el legendario Kit Sombras del Tártaro (Halloween Edition)!"}}
-      - {id: announce, type: ANNOUNCEMENT, refund: NOT_REVOCABLE, parameters: {product: "Kit Legendario: Sombras del Tártaro (Halloween Edition)"}}
 

@@ -204,6 +204,71 @@ public final class PurchaseService {
         } catch (Exception error) { return Result.error(error.getMessage()); }
     }
 
+    /**
+     * Renovacion de una suscripcion (comando "Renewal" de Tebex). Solo extiende lo que es por
+     * tiempo (grupos/permisos temporales con duracion, o acciones con renew=true): jamas repite
+     * kit, piedra ni dinero. Idempotente por (entrega, ref); sin ref, una vez por dia UTC.
+     */
+    public Result renew(String transaction, String player, String productId, String ref, String actor) {
+        try {
+            ProductDefinition product = catalog.get(productId);
+            if (product == null) return Result.error("Producto inexistente: " + productId);
+            PurchaseRepository.Delivery delivery = repository.find(PROVIDER, transaction, product.id()).orElse(null);
+            if (delivery == null && player != null) {
+                // Tebex puede mandar otro id de transaccion en cada cobro: se usa la ultima compra completada del jugador.
+                delivery = repository.history(player).stream()
+                        .filter(d -> d.product().equals(product.id()) && d.state() == PurchaseState.COMPLETED).findFirst().orElse(null);
+            }
+            if (delivery == null) return Result.error("Renovación sin compra inicial completada.");
+            if (ESTADOS_TERMINALES.contains(delivery.state())) return Result.error("La compra está en estado " + delivery.state() + ": no se renueva.");
+            if (delivery.state() != PurchaseState.COMPLETED) return Result.error("La entrega inicial no está completada (" + delivery.state() + ").");
+            String key = ref == null || ref.isBlank() ? "auto-" + java.time.LocalDate.now(java.time.ZoneOffset.UTC) : ref;
+            if (!key.matches("[A-Za-z0-9._:-]{1,128}")) return Result.error("Referencia de renovación inválida.");
+            if (!processing.add(delivery.id())) return Result.ok("Entrega en proceso; reintente.");
+            try {
+                if (repository.hasRenewal(delivery.id(), key)) return Result.ok("Idempotente: renovación " + key + " ya aplicada.");
+                ExecutionContext context = new ExecutionContext(delivery.id(), PROVIDER, delivery.transaction(), delivery.player(),
+                        delivery.uuid() == null ? runtime.resolveUuid(delivery.player()) : UUID.fromString(delivery.uuid()), product, false, actor);
+                int renewed = 0;
+                for (PurchaseRepository.ActionRecord record : repository.actions(delivery.id())) {
+                    if (record.state() != ActionState.COMPLETED) continue;
+                    ProductAction action = product.actions().stream().filter(c -> c.id().equals(record.key())).findFirst().orElse(null);
+                    if (action == null || !renewable(action)) continue;
+                    ActionResult result = runtime.execute(context, action);
+                    if (result.status() != ActionResult.Status.COMPLETED) {
+                        repository.audit(delivery.id(), actor, "RENEW_FAILED", record.key() + ": " + result.detail());
+                        return Result.error("Renovación incompleta en '" + record.key() + "': " + result.detail());
+                    }
+                    repository.actionState(record.id(), ActionState.COMPLETED, mergeRenewalResult(record.result(), result.detail()), null);
+                    renewed++;
+                }
+                repository.registerRenewal(delivery.id(), key, actor);
+                repository.audit(delivery.id(), actor, "RENEWED", key + ";actions=" + renewed);
+                return Result.ok("Renovación " + key + " aplicada (" + renewed + " acción(es)).");
+            } finally { processing.remove(delivery.id()); }
+        } catch (Exception error) { return Result.error(error.getMessage()); }
+    }
+
+    static boolean renewable(ProductAction action) {
+        String flag = action.parameters().get("renew");
+        if (flag != null) return Boolean.parseBoolean(flag);
+        return action.type() == ActionType.LUCKPERMS_TEMPORARY
+                || (action.type() == ActionType.TEMPORARY_PERMISSION && action.parameters().get("duration") != null);
+    }
+
+    /** Conserva el "previous" original y el "new" mas reciente para que un reembolso revoque toda la cadena. */
+    static String mergeRenewalResult(String old, String fresh) {
+        if (old == null || fresh == null || old.contains("permanent=true") || fresh.contains("permanent=true")) return old == null ? fresh : old;
+        String previous = field(old, "previous"), created = field(fresh, "new");
+        if (previous == null || created == null) return fresh;
+        return old.replaceAll("new=\\d+", "new=" + created).replaceAll("previous=\\d+", "previous=" + previous);
+    }
+
+    private static String field(String result, String key) {
+        for (String part : result.split(";")) if (part.startsWith(key + "=")) return part.substring(key.length() + 1);
+        return null;
+    }
+
     public List<PurchaseRepository.Delivery> pending() throws SQLException { return repository.pending(); }
     public List<PurchaseRepository.Delivery> history(String player) throws SQLException { return repository.history(player); }
     public List<PurchaseRepository.Delivery> status(String transaction) throws SQLException { return repository.findByTransaction(transaction); }
