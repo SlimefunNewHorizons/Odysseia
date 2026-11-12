@@ -158,6 +158,9 @@ commands:
     aliases: [grantoldschool, viejodesde, oldschoolgive]
     usage: /esteusuarioesviejo <jugador>
 permissions:
+  odysseia.armorvariants:
+    description: Permite cambiar la variante visual de una armadura renombrandola en el yunque.
+    default: true
   odysseia.evento.admin:
     description: Permite administrar la suite de eventos de Odysseia.
     default: op
