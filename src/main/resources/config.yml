@@ -186,8 +186,8 @@ slimefun-spawners:
 # /odysseia pack [jugador|all] reenvia el pack sin reiniciar.
 resource-pack:
   enabled: true
-  url: https://pack.drakescraft.cl/t2-v15.zip?v=15
-  sha1: 994c27b210e3794890e92f72200491d00003615a
+  url: https://pack.drakescraft.cl/t2-v16.zip?v=16
+  sha1: 3340e5d41b06ea89f1b8f3f943e647a8eb6e9419
   required: false
   prompt: '&bDrakesCraft &7ofrece texturas para Slimefun y sus addons. &aEs opcional&7,
     pero se ve mucho mejor.'
