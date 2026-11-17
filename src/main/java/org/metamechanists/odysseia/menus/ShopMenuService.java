@@ -67,9 +67,9 @@ public final class ShopMenuService implements Listener, org.bukkit.command.Comma
         Inventory inventory = Bukkit.createInventory(null, size(root.getInt("rows", 6)), color(root.getString("title", "&8Tienda")));
         Map<Integer, String> actions = new LinkedHashMap<>();
 
-        ItemStack filler = createGlassPane(Material.BLACK_STAINED_GLASS_PANE, " ");
-        ItemStack border = createGlassPane(Material.GRAY_STAINED_GLASS_PANE, " ");
-        ItemStack accent = createGlassPane(Material.ORANGE_STAINED_GLASS_PANE, " ");
+        ItemStack filler = MenuUtils.createPane(Material.BLACK_STAINED_GLASS_PANE, " ");
+        ItemStack border = MenuUtils.createPane(Material.GRAY_STAINED_GLASS_PANE, " ");
+        ItemStack accent = MenuUtils.createPane(Material.CYAN_STAINED_GLASS_PANE, " ");
 
         for (int i = 0; i < inventory.getSize(); i++) {
             if (i == 0 || i == 8 || i == 45 || i == 53) {
@@ -96,6 +96,7 @@ public final class ShopMenuService implements Listener, org.bukkit.command.Comma
         }
         pages.put(inventory, new Page(actions));
         player.openInventory(inventory);
+        player.playSound(player.getLocation(), org.bukkit.Sound.BLOCK_NOTE_BLOCK_CHIME, 0.7f, 1.2f);
     }
 
     private void openKits(Player player) {
@@ -135,8 +136,12 @@ public final class ShopMenuService implements Listener, org.bukkit.command.Comma
         if (!(event.getWhoClicked() instanceof Player player) || event.getRawSlot() < 0) return;
         String action = page.actions().get(event.getRawSlot());
         if (action == null) return;
+        player.playSound(player.getLocation(), org.bukkit.Sound.UI_BUTTON_CLICK, 0.6f, 1.0f);
         for (String command : action.split("\\n")) {
-            if (command.equalsIgnoreCase("odysseia:open-kits")) {
+            if (command.equalsIgnoreCase("odysseia:close")) {
+                player.closeInventory();
+                break;
+            } else if (command.equalsIgnoreCase("odysseia:open-kits")) {
                 openKits(player);
             } else if (command.startsWith("odysseia:claim:")) {
                 String claim = "kit " + command.substring("odysseia:claim:".length());
@@ -212,24 +217,16 @@ public final class ShopMenuService implements Listener, org.bukkit.command.Comma
 
     private ItemStack item(ConfigurationSection entry, Material fallback) {
         Material material = resolveItemMaterial(entry, fallback);
-        ItemStack item = new ItemStack(material);
-        if (entry == null) return item;
-        ItemMeta meta = item.getItemMeta();
-        if (meta == null) return item;
-        meta.setDisplayName(color(entry.getString("name", "&f")));
-        meta.setLore(entry.getStringList("lore").stream().map(this::color).toList());
-        item.setItemMeta(meta);
-        return item;
+        if (entry == null) return new ItemStack(material);
+        String texture = entry.getString("texture", entry.getString("head-texture", ""));
+        String name = entry.getString("name", "&f");
+        List<String> lore = entry.getStringList("lore");
+        boolean glow = entry.getBoolean("glow", false);
+        return MenuUtils.buildItem(material, texture, name, lore, glow);
     }
 
     private ItemStack createGlassPane(Material material, String name) {
-        ItemStack item = new ItemStack(material);
-        ItemMeta meta = item.getItemMeta();
-        if (meta != null) {
-            meta.setDisplayName(name);
-            item.setItemMeta(meta);
-        }
-        return item;
+        return MenuUtils.createPane(material, name);
     }
 
     private static int size(int rows) {
@@ -237,7 +234,7 @@ public final class ShopMenuService implements Listener, org.bukkit.command.Comma
     }
 
     private String color(String value) {
-        return ChatColor.translateAlternateColorCodes('&', value == null ? "" : value);
+        return MenuUtils.colorize(value);
     }
 
     private record Page(Map<Integer, String> actions) { }

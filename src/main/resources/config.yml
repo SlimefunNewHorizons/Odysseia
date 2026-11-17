@@ -833,108 +833,177 @@ protectionstones:
 native-menus:
   shop:
     enabled: true
-    title: '&6⚡ &lMain Menu &8· &fDrakesCraft &6⚡'
+    title: '&#4FC3F7&l✦ DRAKESCRAFT &8· &#FFD700&lMENÚ PRINCIPAL &#4FC3F7&l✦'
     rows: 6
     entries:
       protecciones:
         slot: 10
-        material: LODESTONE
-        name: '&f&lPolis &8· &7Protections'
+        material: PLAYER_HEAD
+        texture: eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvYjRhZDI5NmE5M2YyMGE3YTc3YTk1YjE5NmU3MjE0NDNlZGIwNDM2MGFjN2M2OGZhMzhmN2I5NmNlMTc3YTQ1In19fQ==
+        name: '&#FFD700&l✦ Protecciones &8· &fPolis'
         lore:
-        - '&7Claim blocks for your territory.'
-        - '&8From Khora to Olympus.'
+        - '&8&m────────────────────────────────────────'
+        - '&7Consigue bloques de reclamo para proteger'
+        - '&7tus construcciones, cofres y ciudades.'
+        - '&8Desde Khora hasta el mismísimo Olimpo.'
         - ''
-        - '&e➤ Click to open &f/tiendaprot'
+        - '&e➤ Clic para abrir &6/tiendaprot'
+        - '&8&m────────────────────────────────────────'
         commands:
         - tiendaprot
       subastas:
         slot: 12
-        material: SUNFLOWER
-        name: '&e&lPlayer Auctions'
+        material: PLAYER_HEAD
+        texture: eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvZDg4YTYxZTc3YTcyYmViNTE1OGI0NjUxODBhMTQ1ZWVjZjhmNmQ3ZGVmYTBmNjg4YWRjMmE5YjE4YTk5OGJjIn19fQ==
+        name: '&#FFAA00&l✦ Subastas de Jugadores'
         lore:
-        - '&7Player market for your game mode.'
-        - '&8Nothing moves between Survival, Classic or islands.'
+        - '&8&m────────────────────────────────────────'
+        - '&7Mercado libre entre jugadores de la modalidad.'
+        - '&7Compra y vende ítems por Dragmas.'
         - ''
-        - '&e➤ Click to open &f/ca'
+        - '&e➤ Clic para abrir &6/ca'
+        - '&8&m────────────────────────────────────────'
         commands:
         - ca
       slimefun:
         slot: 14
-        material: AMETHYST_SHARD
-        name: '&b&lSlimefun Market'
+        material: PLAYER_HEAD
+        texture: eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvYTliYzM4ZDdhMTI2MmQ1ZDg1MmEzOTI4YTM2ZmEyNGNjMGU0ZGNmMTkzZDU3NzFkZGJlOGU1ZGRjZmQ5NDMifX19
+        name: '&#00FFA6&l✦ Mercado Slimefun'
         lore:
-        - '&7Market with dynamic prices.'
-        - '&8Ingots, dusts and resources.'
+        - '&8&m────────────────────────────────────────'
+        - '&7Bolsa de recursos y maquinarias tecnológicas.'
+        - '&7Precios dinámicos de lingotes y polvos.'
         - ''
-        - '&e➤ Click to open &f/sfmercado'
+        - '&e➤ Clic para abrir &6/sfmercado'
+        - '&8&m────────────────────────────────────────'
         commands:
         - sfmercado
       warps:
         slot: 16
-        material: COMPASS
-        name: '&a&lPlayer Warps'
+        material: PLAYER_HEAD
+        texture: eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvMWY1YTNlZGM0YTYwN2Q5ZTRmNmUzMWNlYjcxMDZlZjNiYjZiNzIxNWE5ZjhkZjY3MjljY2YxMGRiM2I4YTQifX19
+        name: '&#55FFFF&l✦ Warps de la Comunidad'
         lore:
-        - '&7Explore public shops and bases.'
-        - '&8Create your own point of sale.'
+        - '&8&m────────────────────────────────────────'
+        - '&7Explora tiendas públicas, mega granjas'
+        - '&7y bases creadas por otros jugadores.'
         - ''
-        - '&e➤ Click to open &f/pw'
+        - '&e➤ Clic para abrir &6/pw'
+        - '&8&m────────────────────────────────────────'
         commands:
         - pw
+      modalidades:
+        slot: 22
+        material: PLAYER_HEAD
+        texture: eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvYjUxNzcwYmU0NjYxODU4YWQ2NDYyNzE5MmJhN2ZhMTY3MDlkN2RmOWQyNzJkNWMzMjdmZmJiMThhZjYxZWM0In19fQ==
+        glow: true
+        name: '&#00FFA6&l✦ MODALIDADES DE JUEGO &#00FFA6&l✦'
+        lore:
+        - '&8&m────────────────────────────────────────'
+        - '&7Explora y viaja entre los mundos de la red:'
+        - '&8▪ &aSurvival Slimefun &8· &fMaquinarias y magia'
+        - '&8▪ &2Survival Clásico &8· &fVanilla+ con Terralith'
+        - '&8▪ &bSkyBlock &8· &dOneBlock &8· &6OneChunk'
+        - '&8▪ &eLaboratorio Creativo'
+        - ''
+        - '&e➤ Clic para abrir &a/modalidades'
+        - '&8&m────────────────────────────────────────'
+        commands:
+        - modalidades
       materiales:
         slot: 28
-        material: LIME_CONCRETE
-        name: '&a&lBlocks & Building'
+        material: PLAYER_HEAD
+        texture: eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvMjRiMjJjN2E2ODVlMTMyOWMyOWYyN2VjYzEzZGIzYmUxYzAyYWI4MjEyMTNmNTZkYTU5ZDk5N2Y3ZmEzZjc5In19fQ==
+        name: '&#55FF55&l✦ Bloques & Decoración'
         lore:
-        - '&7Decorative and building materials.'
-        - '&8Concrete, terracotta, glass and wood.'
+        - '&8&m────────────────────────────────────────'
+        - '&7Materiales y bloques de construcción.'
+        - '&7Concreto, terracota, cristal y madera.'
         - ''
-        - '&e➤ Click to open &f/ultimateshop'
+        - '&e➤ Clic para abrir &6/ultimateshop'
+        - '&8&m────────────────────────────────────────'
         commands:
         - ultimateshop
       trabajos:
         slot: 30
-        material: GOLDEN_PICKAXE
-        name: '&6&lJobs'
+        material: PLAYER_HEAD
+        texture: eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvMWE5ZGUzZmJlMzQ5OTc3NjQyY2Y4ZTA5ZWI2NjMyYzk2ZTMwOTI4YTQ4ODQxZDFjYTA3YzdmMGI2N2FkNWYifX19
+        name: '&#FFD700&l✦ Trabajos &8· &fJobs'
         lore:
-        - '&7Earn Dragmas while working on the server.'
-        - '&8Choose up to 3 jobs at once.'
+        - '&8&m────────────────────────────────────────'
+        - '&7Gana Dragmas trabajando en el servidor.'
+        - '&7Elige hasta 3 empleos simultáneos.'
         - ''
-        - '&e➤ Click to open &f/jobs browse'
+        - '&e➤ Clic para abrir &6/jobs browse'
+        - '&8&m────────────────────────────────────────'
         commands:
         - jobs browse
       habilidades:
         slot: 32
-        material: EXPERIENCE_BOTTLE
-        name: '&c&lSkills &8· &7AuraSkills'
+        material: PLAYER_HEAD
+        texture: eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvODhhNGZiZDFjODg0YWU5OTk5ZTRlYjM4OTc5NTdmZjc1NGQ0OGEyZjM1NDcxZmZkZGU0ZmMzOWVlNzBhNGUifX19
+        name: '&#FF5555&l✦ Habilidades &8· &fAuraSkills'
         lore:
-        - '&7Level up mining and combat stats.'
-        - '&8Increase your health and passive strength.'
+        - '&8&m────────────────────────────────────────'
+        - '&7Sube de nivel tus estadísticas de minería y combate.'
+        - '&7Aumenta tu salud pasiva y tu fuerza de golpe.'
         - ''
-        - '&e➤ Click to open &f/skills'
+        - '&e➤ Clic para abrir &6/skills'
+        - '&8&m────────────────────────────────────────'
         commands:
         - skills
       encantos:
         slot: 34
-        material: ENCHANTING_TABLE
-        name: '&d&lUnique Enchantments'
+        material: PLAYER_HEAD
+        texture: eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvY2EyMDhhYjIzZTlhNWQwY2Q1YWNmNGMzYTI5Yzc4YzU0MzkwNTZhOGE1YTNlM2Y5ZjQxZWRiNWY4M2Q5ZmM0In19fQ==
+        name: '&#FF55FF&l✦ Encantos Únicos'
         lore:
-        - '&7Special server enchantments.'
-        - '&8Unlock abilities on your equipment.'
+        - '&8&m────────────────────────────────────────'
+        - '&7Encantamientos especiales y runas arcanas.'
+        - '&7Desbloquea habilidades para tu equipo.'
         - ''
-        - '&e➤ Click to open &f/eenchants'
+        - '&e➤ Clic para abrir &6/eenchants'
+        - '&8&m────────────────────────────────────────'
         commands:
         - eenchants
+      cerrar:
+        slot: 45
+        material: BARRIER
+        name: '&c&l✖ Cerrar Menú'
+        lore:
+        - '&7Haz clic para cerrar este menú.'
+        commands:
+        - odysseia:close
       kits:
         slot: 49
-        material: DIAMOND_CHESTPLATE
-        name: '&b&lKits & VIP Ranks'
+        material: PLAYER_HEAD
+        texture: eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvNWY4OTFiNTk0M2Q4NDQyMDFkMjE4ZmVhYTk3MmJhMWIxZmFjY2VhZTJkOTM1OWRlNzM2Y2FjYTU3YmM5NiJ9fX0=
+        glow: true
+        name: '&#55FFFF&l✦ Kits & Rangos VIP'
         lore:
-        - '&7Review and claim your periodic kits.'
-        - '&8Rank and supporter benefits.'
+        - '&8&m────────────────────────────────────────'
+        - '&7Revisa y reclama tus kits mensuales de rango.'
+        - '&7Beneficios de donadores y soporte al servidor.'
         - ''
-        - '&e➤ Click to open &f/kitsvip'
+        - '&e➤ Clic para abrir &6/kitsvip'
+        - '&8&m────────────────────────────────────────'
         commands:
         - odysseia:open-kits
+      spawn:
+        slot: 53
+        material: PLAYER_HEAD
+        texture: eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvMWY1YTNlZGM0YTYwN2Q5ZTRmNmUzMWNlYjcxMDZlZjNiYjZiNzIxNWE5ZjhkZjY3MjljY2YxMGRiM2I4YTQifX19
+        name: '&#55FF55&l✦ Spawn Principal &7(/spawn)'
+        lore:
+        - '&8&m────────────────────────────────────────'
+        - '&7Regresa inmediatamente al spawn'
+        - '&7de tu modalidad actual.'
+        - ''
+        - '&e➤ Clic para ir al &a/spawn'
+        - '&8&m────────────────────────────────────────'
+        commands:
+        - spawn
   kits:
     title: '&8DrakesCraft &7| &6Kits VIP'
     rows: 4
