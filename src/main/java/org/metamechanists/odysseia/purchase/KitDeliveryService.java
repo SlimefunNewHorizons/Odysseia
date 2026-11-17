@@ -129,16 +129,36 @@ public final class KitDeliveryService {
         Object loreValue = values.get("lore");
         if (loreValue instanceof List<?> lore) meta.setLore(lore.stream().map(value -> color(String.valueOf(value))).toList());
         if (meta instanceof BookMeta bookMeta) {
-            bookMeta.setTitle(color(String.valueOf(values.containsKey("book-title")
-                    ? values.get("book-title") : "Guía de DrakesCraft")));
+            String rawTitle = String.valueOf(values.containsKey("book-title")
+                    ? values.get("book-title") : "Guía de DrakesCraft");
+            bookMeta.setTitle(ChatColor.stripColor(color(rawTitle)));
             bookMeta.setAuthor(color(String.valueOf(values.containsKey("author")
                     ? values.get("author") : "Staff DrakesCraft")));
+            if (name == null) {
+                meta.setDisplayName(color(rawTitle));
+            }
+            if (loreValue == null) {
+                meta.setLore(List.of(
+                        color("&8&m────────────────────────────────────────"),
+                        color("&7Manual oficial de supervivencia."),
+                        color("&7Aprende comandos, reglas y protecciones."),
+                        "",
+                        color("&e➤ Clic derecho para abrir la guía."),
+                        color("&8&m────────────────────────────────────────")
+                ));
+            }
             Object pages = values.get("pages");
             if (pages instanceof List<?> list) {
                 bookMeta.setPages(list.stream()
                         .map(value -> color(String.valueOf(value).replace("\\n", "\n")))
                         .toList());
             }
+            bookMeta.setGeneration(BookMeta.Generation.ORIGINAL);
+        }
+        Object cmd = values.get("custom-model-data");
+        if (cmd != null) {
+            int cmdVal = integer(cmd, -1);
+            if (cmdVal >= 0) meta.setCustomModelData(cmdVal);
         }
         Object enchantments = values.get("enchantments");
         if (enchantments instanceof Map<?, ?> map) {
@@ -236,5 +256,5 @@ public final class KitDeliveryService {
         return free >= items.size();
     }
     private int integer(Object value, int fallback) { try { return Integer.parseInt(String.valueOf(value)); } catch (Exception ignored) { return fallback; } }
-    private String color(String value) { return ChatColor.translateAlternateColorCodes('&', value); }
+    private String color(String value) { return org.metamechanists.odysseia.menus.MenuUtils.colorize(value); }
 }

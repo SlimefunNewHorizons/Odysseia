@@ -33,18 +33,13 @@ ultragod:
 horror-night:
   enabled: false
   min-interval-minutes: 15
-# Contenido extra SOLO de octubre (Herobrine con su skin real, Luna de Sangre más seguida, sustos nuevos, truco o trato).
-# Se evalúa en cada uso: el 1 de noviembre se apaga solo, sin reiniciar. 'enabled: false' lo apaga antes.
-halloween-plus:
-  enabled: true
-  blood-moon-every-nights: 2
-  horror-extra-events: 0
-  horror-min-interval-minutes: 8
-  trick-or-treat-cooldown-seconds: 45
-  trick-or-treat-daily-cap: 12
-  trick-or-treat-treat-chance: 0.7
   worlds:
   - world
+protection-border:
+  enabled: true
+  material: LIGHT_BLUE_STAINED_GLASS
+  max-blocks: 2048
+  staff-permission: odysseia.protection.border
 owner-cycle:
   enabled: true
   interval-minutes: 30
@@ -90,6 +85,12 @@ armor-effects:
     strength: 2
     resistance: 1
     saturation: true
+  oldschool:
+    speed: 3
+    health-boost: 2
+    fire-resistance: true
+    saturation: true
+    resistance: 1
   atenea:
     speed: 3
     health-boost: 3
@@ -149,12 +150,6 @@ armor-effects:
     regeneration: 2
     fire-resistance: true
     saturation: true
-  oldschool:
-    speed: 3
-    health-boost: 2
-    fire-resistance: true
-    saturation: true
-    resistance: 1
 papa-de-mar:
   food-restored: 1
   saturation-restored: 8.4
@@ -179,7 +174,7 @@ papa-de-mar:
   delivery:
     enabled: true
     interval-minutes: 15
-    message: '&eYou received the &6&l✦ Sea Potato ✦&e.'
+    message: '&eRecibiste la &6&l✦ Papa de mar ✦&e.'
   delivery-interval-minutes: 15
 slimefun-spawners:
   enabled: true
@@ -191,21 +186,19 @@ slimefun-spawners:
 # /odysseia pack [jugador|all] reenvia el pack sin reiniciar.
 resource-pack:
   enabled: true
-  url: https://pack.drakescraft.cl/latest.zip
-  sha1: eb865aadedba8a284c2948d82f4c1f52504318b9
+  url: https://pack.drakescraft.cl/t2-v15.zip?v=15
+  sha1: 994c27b210e3794890e92f72200491d00003615a
   required: false
-  prompt: '&bDrakesCraft &7offers textures for Slimefun and its addons. &aThey are optional&7,
-    but make everything look much better.'
+  prompt: '&bDrakesCraft &7ofrece texturas para Slimefun y sus addons. &aEs opcional&7,
+    pero se ve mucho mejor.'
   delay-ticks: 40
   cache-bust: true
   log-status: true
 
 bedrock-guard:
   enabled: true
-  # Disable the guarded RTP path without replacing the plugin.
-  rtp-enabled: true
-  limite: 150000
-  limite-nether: 18750
+  limite: 9000
+  limite-nether: 2300
   mundos:
   - world
   - world_nether
@@ -220,27 +213,24 @@ bedrock-guard:
   - world_galactifun_io
   - world_galactifun_titan
   - world_galactifun_enceladus
+  rtp-enabled: true
 starter-kit:
   enabled: true
-  # Empty preserves legacy delivery on join. T2 uses survival to wait for its worlds.
-  base-modality: ''
   kit: inicial
   delay-ticks: 400
   max-retries: 3
   retry-delay-ticks: 200
-  welcome-message: '&8[&6&lDrakesCraft&8] &eStarter kit delivered. Welcome to the
-    Odyssey!'
+  welcome-message: '&8[&6&lDrakesCraft&8] &eKit de inicio entregado. ¡Bienvenido a
+    la Odisea!'
   por-modalidad:
     skyblock: inicial-skyblock
     oneblock: inicial-oneblock
-welcome-menu:
-  # Dialogo nativo (datapack DrakesCraft: welcome_es / welcome_en) que se abre solo a los
-  # jugadores nuevos al recibir el kit inicial. /bienvenida lo vuelve a abrir.
-  enabled: true
-  delay-ticks: 40
+    clasico: inicial-clasico
+    onechunk: inicial-onechunk
+  base-modality: survival
 chatgames:
-  # 2026-09-16: desactivado; el plugin ChatGames es el unico motor de juegos de chat (evita juegos y premios superpuestos).
-  enabled: false
+  # Habilitado: motor nativo de juegos de chat calendarizados (trivia, matematicas, anagramas).
+  enabled: true
   timezone: America/Santiago
   minimum-players: 2
   min-interval-minutes: 12
@@ -350,52 +340,52 @@ store:
       commands:
       - lp user {player} parent addtemp minero 30d accumulate
       - kit minero {player}
-      - msg {player} &aThank you for purchasing the Miner role!
+      - msg {player} &a¡Gracias por adquirir el rol de Minero!
     cazador:
       require-online: true
       commands:
       - lp user {player} parent addtemp cazador 30d accumulate
       - kit cazador {player}
-      - msg {player} &aThank you for purchasing the Hunter role!
+      - msg {player} &a¡Gracias por adquirir el rol de Cazador!
     constructor:
       require-online: true
       commands:
       - lp user {player} parent addtemp constructor 30d accumulate
       - kit constructor {player}
-      - msg {player} &aThank you for purchasing the Builder role!
+      - msg {player} &a¡Gracias por adquirir el rol de Constructor!
     lenador:
       require-online: true
       commands:
       - lp user {player} parent addtemp lenador 30d accumulate
       - kit lenador {player}
-      - msg {player} &aThank you for purchasing the Lumberjack role!
+      - msg {player} &a¡Gracias por adquirir el rol de Leñador!
     alquimista:
       require-online: true
       commands:
       - lp user {player} parent addtemp alquimista 30d accumulate
       - kit alquimista {player}
-      - msg {player} &aThank you for purchasing the Alchemist role!
+      - msg {player} &a¡Gracias por adquirir el rol de Alquimista!
     nomada:
       require-online: true
       commands:
       - lp user {player} parent addtemp nomada 30d accumulate
       - kit nomada {player}
-      - msg {player} &aThank you for purchasing the Nomad role!
+      - msg {player} &a¡Gracias por adquirir el rol de Nómada!
     dragmas-saco:
       require-online: true
       commands:
       - eco give {player} 50000
-      - msg {player} &aYou received your 50,000 Dragmas Bag!
+      - msg {player} &a¡Recibiste tu Saco de 50,000 Dragmas!
     dragmas-cofre:
       require-online: true
       commands:
       - eco give {player} 250000
-      - msg {player} &aYou received your 250,000 Dragmas Chest!
+      - msg {player} &a¡Recibiste tu Cofre de 250,000 Dragmas!
     dragmas-anfora:
       require-online: true
       commands:
       - eco give {player} 1000000
-      - msg {player} &aYou received your 1,000,000 Dragmas Amphora!
+      - msg {player} &a¡Recibiste tu Ánfora de 1,000,000 Dragmas!
 boss-balance:
   health-multiplier: 2.25
   damage-multiplier: 2.1
@@ -741,6 +731,19 @@ chat-filter:
   duracion:
     mute: 10m
     ban: 1d
+  words:
+  - ctm
+  - conchetumare
+  - conchatumare
+  - culiao
+  - hijo de puta
+  - hdp
+  - pelotudo
+  - puta madre
+  - mierda
+  - maricon
+  - negro de mierda
+  - mogolico
   hate-speech-words:
   - nigger
   - niggers
@@ -758,18 +761,6 @@ chat-filter:
   - neo nazi
   - negro de mierda
   - muerte a los negros
-  words:
-  - ctm
-  - conchetumare
-  - conchatumare
-  - culiao
-  - hijo de puta
-  - hdp
-  - pelotudo
-  - puta madre
-  - mierda
-  - maricon
-  - mogolico
 translation:
   enabled: true
   join-delay-ticks: 400
@@ -1006,7 +997,7 @@ native-menus:
         - spawn
   kits:
     title: '&8DrakesCraft &7| &6Kits VIP'
-    rows: 4
+    rows: 3
     order:
     - hercules
     - hestia
@@ -1015,14 +1006,6 @@ native-menus:
     - artemisa
     - afrodita
     - zeus
-    - thor
-    - anubis
-    - poseidon
-    - titanjapeto
-    - titanoceanus
-    - titanhiperion
-    - titancronos
-    - titancaos
     - oldschool
     icons:
       hercules:
@@ -1046,6 +1029,9 @@ native-menus:
       zeus:
         material: NETHERITE_SWORD
         name: '&e&lZeus'
+      oldschool:
+        material: BOOK
+        name: '&7&lOldschool'
       thor:
         material: MACE
         name: '&b&lThor'
@@ -1070,9 +1056,6 @@ native-menus:
       titancaos:
         material: NETHER_STAR
         name: '&5&lTitán Caos'
-      oldschool:
-        material: BOOK
-        name: '&7&lOldschool'
 kits:
   minero:
     cooldown: '-1'
@@ -2845,6 +2828,73 @@ kits:
       amount: 32
     - material: CHEST
       amount: 2
+    - material: WRITTEN_BOOK
+      name: '&#4FC3F7&l✦ Guía de SkyBlock ✦'
+      book-title: 'Guía de SkyBlock'
+      author: 'Staff DrakesCraft'
+      lore:
+      - '&8&m────────────────────────────────────────'
+      - '&7Manual oficial de supervivencia en el vacío.'
+      - '&7Aprende a gestionar tu isla, misiones y Slimefun.'
+      - ''
+      - '&e➤ Haz clic derecho para abrir la guía'
+      - '&8&m────────────────────────────────────────'
+      pages:
+      - |-
+        &9&lDrakesCraft &8· &b&lSkyBlock
+        &8&m──────────────────
+        &0¡Bienvenido al vacío cósmico!
+        &0Comienza desde una pequeña isla
+        &0flotante y expande tu imperio
+        &0a través de tres dimensiones.
+
+        &8▪ &0Web: &1web.drakescraft.cl
+        &8▪ &0Discord: &1discord.gg/rv3vtXZTk7
+      - |-
+        &6&lGestión de la Isla
+        &8&m──────────────────
+        &8▪ &1/is &0- Menú de tu isla
+        &8▪ &1/is create &0- Crear tu isla
+        &8▪ &1/is go &0- Ir a tu isla
+        &8▪ &1/is sethome &0- Punto de spawn
+        &8▪ &1/is invite <jugador> &0- Invitar
+        &8▪ &1/is team &0- Administrar equipo
+        &8▪ &1/is level &0- Calcular nivel
+      - |-
+        &3&lGenerador de Piedra
+        &8&m──────────────────
+        &0Crea tu generador con agua y lava.
+        &0El generador de DrakesCraft produce
+        &0minerales dinámicos según tu progreso.
+
+        &e¡Cuidado al colocar la lava!
+        &0Evita convertirla en obsidiana.
+      - |-
+        &5&lSlimefun en el Vacío
+        &8&m──────────────────
+        &0¡Slimefun 4 está 100% activo!
+        &8▪ &1/sf guide &0- Guía y recetas
+        &0Fabrica tamizadores automáticos,
+        &0generadores solares, reactores y
+        &0redes de energía en tu isla.
+      - |-
+        &6&lEconomía y Rangos
+        &8&m──────────────────
+        &8▪ &1/rankup &0- Subir de rango
+        &8▪ &1/is warps &0- Visitar islas
+        &8▪ &1/pwarp &0- Mercado de jugadores
+        &8▪ &1/ah &0o &1/ca &0- Subastas
+        &0Cada rango desbloquea mayor radio
+        &0de isla y beneficios exclusivos.
+      - |-
+        &4&lSoporte y Ayuda
+        &8&m──────────────────
+        &8▪ &1/spawn &0- Lobby de SkyBlock
+        &8▪ &1/discord &0- Canal de tickets
+        &8▪ &1/jack <mensaje> &0- Reportar bugs
+
+        &2¡Conquista las alturas del vacío
+        &2en DrakesCraft!
   inicial-oneblock:
     cooldown: '-1'
     permission: odysseia.kit.inicial-oneblock
@@ -2867,125 +2917,78 @@ kits:
     - material: SCAFFOLDING
       amount: 32
     - material: WATER_BUCKET
-  inicial-clasico:
-    cooldown: '-1'
-    permission: odysseia.kit.inicial-clasico
-    protection-alias: starter
-    protection-amount: 1
-    vanilla-items:
-    - material: DIAMOND_HELMET
-      name: '&b&lStarter Helmet'
-      enchantments:
-        protection: 6
-        thorns: 3
-        unbreaking: 10
-        mending: 1
-        respiration: 3
-        aqua_affinity: 1
-    - material: DIAMOND_CHESTPLATE
-      name: '&b&lStarter Chestplate'
-      enchantments:
-        protection: 6
-        thorns: 3
-        unbreaking: 10
-        mending: 1
-    - material: DIAMOND_LEGGINGS
-      name: '&b&lStarter Leggings'
-      enchantments:
-        protection: 6
-        thorns: 3
-        unbreaking: 10
-        mending: 1
-    - material: DIAMOND_BOOTS
-      name: '&b&lStarter Boots'
-      enchantments:
-        protection: 6
-        thorns: 3
-        unbreaking: 10
-        mending: 1
-        feather_falling: 4
-        depth_strider: 3
-    - material: DIAMOND_SWORD
-      name: '&b&lStarter Sword'
-      enchantments:
-        sharpness: 6
-        looting: 3
-        fire_aspect: 2
-        knockback: 2
-        sweeping_edge: 3
-        unbreaking: 10
-        mending: 1
-    - material: DIAMOND_PICKAXE
-      name: '&b&lStarter Pickaxe'
-      enchantments:
-        efficiency: 6
-        fortune: 3
-        unbreaking: 10
-        mending: 1
-    - material: DIAMOND_AXE
-      name: '&b&lStarter Axe'
-      enchantments:
-        efficiency: 6
-        sharpness: 6
-        unbreaking: 10
-        mending: 1
-    - material: DIAMOND_SHOVEL
-      name: '&b&lStarter Shovel'
-      enchantments:
-        efficiency: 6
-        silk_touch: 1
-        unbreaking: 10
-        mending: 1
-    - material: SHIELD
-      name: '&bStarter Shield'
-      enchantments:
-        unbreaking: 10
-        mending: 1
-    - material: GOLDEN_CARROT
-      amount: 24
-    - material: COOKED_BEEF
-      amount: 32
-    - material: TORCH
-      amount: 64
     - material: WRITTEN_BOOK
-      book-title: '&6DrakesCraft Guide'
-      author: '&eStaff DrakesCraft'
+      name: '&#FF77D9&l✦ Guía de OneBlock ✦'
+      book-title: 'Guía de OneBlock'
+      author: 'Staff DrakesCraft'
+      lore:
+      - '&8&m────────────────────────────────────────'
+      - '&7Manual oficial para dominar el bloque infinito.'
+      - '&7Fases, progresión, expansiones y Slimefun.'
+      - ''
+      - '&e➤ Haz clic derecho para abrir la guía'
+      - '&8&m────────────────────────────────────────'
       pages:
-      - 'DrakesCraft\nWelcome to Classic survival.\nGuides: web.drakescraft.cl'
-      - Getting started\n/spawn, /sethome, /home, /rtp, /modalidades
-      - Classic\nVanilla progression. Slimefun machines belong in the Slimefun modality.
-      - Economy\n/bal, /pay, /bank, /tienda
-      - Protection\nPlace your ProtectionStone.\n/ps add <player>, /ps home, /ps list
-      - Help\n/discord for support.\nweb.drakescraft.cl
-  inicial-onechunk:
-    cooldown: '-1'
-    permission: odysseia.kit.inicial-onechunk
-    vanilla-items:
-    - material: STONE_PICKAXE
-      name: '&d&lFirst Block Pickaxe'
-      enchantments:
-        efficiency: 2
-        unbreaking: 3
-    - material: STONE_SWORD
-      name: '&d&lFirst Block Sword'
-      enchantments:
-        sharpness: 2
-        unbreaking: 3
-    - material: COOKED_BEEF
-      amount: 32
-    - material: TORCH
-      amount: 32
-    - material: CHEST
-    - material: SCAFFOLDING
-      amount: 32
-    - material: WATER_BUCKET
+      - |-
+        &5&lDrakesCraft &8· &d&lOneBlock
+        &8&m──────────────────
+        &0¡Estás sobre un bloque infinito!
+        &0Rómpelo una y otra vez para
+        &0recolectar bloques, cofres y
+        &0hacer aparecer criaturas.
+
+        &8▪ &0Web: &1web.drakescraft.cl
+        &8▪ &0Discord: &1discord.gg/rv3vtXZTk7
+      - |-
+        &6&lFases del Bloque
+        &8&m──────────────────
+        &0El bloque progresa por fases:
+        &8▪ &2Pradera &8· &aBosque &8· &7Cueva
+        &8▪ &cInframundo &8· &9Océano &8· &eEnd
+        &0Cada fase desbloquea materiales
+        &0más raros y nuevos desafíos.
+      - |-
+        &c&lConsejos de Supervivencia
+        &8&m──────────────────
+        &e¡Agáchate (Shift) al minar!
+        &0Así no caerás al vacío cuando
+        &0el bloque se rompa.
+
+        &0Construye una plataforma amplia
+        &0alrededor del bloque y separa la
+        &0zona de aparición de monstruos.
+      - |-
+        &2&lSlimefun en OneBlock
+        &8&m──────────────────
+        &0¡Slimefun 4 está habilitado!
+        &8▪ &1/sf guide &0- Guía general
+        &0Aprovecha los recursos de cada
+        &0fase para crear polvo mineral,
+        &0máquinas automáticas y energía.
+      - |-
+        &6&lComandos Principales
+        &8&m──────────────────
+        &8▪ &1/ob &0o &1/oneblock &0- Panel
+        &8▪ &1/ob go &0- Volver a tu bloque
+        &8▪ &1/ob invite <jugador> &0- Amigos
+        &8▪ &1/sellinv &0- Vender sobrantes
+        &8▪ &1/menu &0- Menú del servidor
+      - |-
+        &1&lSoporte y Comunidad
+        &8&m──────────────────
+        &8▪ &1/spawn &0- Lobby de OneBlock
+        &8▪ &1/discord &0- Soporte técnico
+        &8▪ &1/jack <mensaje> &0- Reportar bugs
+
+        &2¡Demuestra tu destreza construyendo
+        &2un imperio desde un solo bloque!
   inicial:
     cooldown: '-1'
     permission: odysseia.kit.inicial
     protection-alias: starter
     protection-amount: 1
     vanilla-items:
-    - material: DIAMOND_HELMET
+    - material: IRON_HELMET
       name: '&b&lCasco del Guardián Inicial'
       enchantments:
         protection: 6
@@ -2994,21 +2997,21 @@ kits:
         mending: 1
         respiration: 3
         aqua_affinity: 1
-    - material: DIAMOND_CHESTPLATE
+    - material: IRON_CHESTPLATE
       name: '&b&lPechera del Guardián Inicial'
       enchantments:
         protection: 6
         thorns: 3
         unbreaking: 10
         mending: 1
-    - material: DIAMOND_LEGGINGS
+    - material: IRON_LEGGINGS
       name: '&b&lGrebas del Guardián Inicial'
       enchantments:
         protection: 6
         thorns: 3
         unbreaking: 10
         mending: 1
-    - material: DIAMOND_BOOTS
+    - material: IRON_BOOTS
       name: '&b&lBotas del Guardián Inicial'
       enchantments:
         protection: 6
@@ -3017,7 +3020,7 @@ kits:
         mending: 1
         feather_falling: 4
         depth_strider: 3
-    - material: DIAMOND_SWORD
+    - material: IRON_SWORD
       name: '&b&lEspada del Guardia Inicial'
       enchantments:
         sharpness: 6
@@ -3027,21 +3030,21 @@ kits:
         sweeping_edge: 3
         unbreaking: 10
         mending: 1
-    - material: DIAMOND_PICKAXE
+    - material: IRON_PICKAXE
       name: '&b&lPico del Prospecto Divino'
       enchantments:
         efficiency: 6
         fortune: 3
         unbreaking: 10
         mending: 1
-    - material: DIAMOND_AXE
+    - material: IRON_AXE
       name: '&b&lHacha del Forjador Sagrado'
       enchantments:
         efficiency: 6
         sharpness: 6
         unbreaking: 10
         mending: 1
-    - material: DIAMOND_SHOVEL
+    - material: IRON_SHOVEL
       name: '&b&lPala del Sendero Eterno'
       enchantments:
         efficiency: 6
@@ -3060,54 +3063,87 @@ kits:
     - material: TORCH
       amount: 64
     - material: WRITTEN_BOOK
-      book-title: '&6Guía de DrakesCraft'
-      author: '&eStaff DrakesCraft'
+      name: '&#00FFA6&l✦ Guía de Survival & Slimefun ✦'
+      book-title: 'Guía de Survival'
+      author: 'Staff DrakesCraft'
+      lore:
+      - '&8&m────────────────────────────────────────'
+      - '&7Manual oficial de supervivencia tecnológica.'
+      - '&7Slimefun 4, máquinas, economía y protecciones.'
+      - ''
+      - '&e➤ Haz clic derecho para abrir la guía'
+      - '&8&m────────────────────────────────────────'
       pages:
       - |-
-        &6&lDrakesCraft
-        &0Survival tecnológico para Java y Bedrock.
+        &6&lDrakesCraft &8· &2&lSurvival
+        &8&m──────────────────
+        &0¡Bienvenido a la &2Temporada 2&0!
+        &0Survival tecnológico para
+        &0Java y Bedrock.
 
-        &0Web: &9drakescraft.cl
-        &0Servidor: &9mc.drakescraft.cl
+        &8▪ &0Web: &1web.drakescraft.cl
+        &8▪ &0IP: &1mc.drakescraft.cl
+        &8▪ &0Discord: &1discord.gg/rv3vtXZTk7
       - |-
-        &6&lPrimeros pasos
-
-        &0/spawn
-        &0/sethome y /home
-        &0/tpa y /tpaccept
-        &0/rtp
-        &0/kit inicial
-        &0/tienda
+        &6&lPrimeros Pasos
+        &8&m──────────────────
+        &8▪ &1/spawn &0- Centro del mundo
+        &8▪ &1/rtp &0- Teletransporte salvaje
+        &8▪ &1/sethome &0y &1/home &0- Tu base
+        &8▪ &1/tpa <jugador> &0- Enviar TP
+        &8▪ &1/menu &0- Panel general
+        &8▪ &1/kit &0- Menú de kits
+        &8▪ &1/modalidades &0- Cambiar mundo
       - |-
-        &6&lSlimefun
+        &2&lSlimefun 4 & Suites
+        &8&m──────────────────
+        &8▪ &1/sf guide &0- Guía y recetas
+        &8▪ &1/sf search <texto> &0- Buscar
+        &0Fabrica máquinas, energía,
+        &0reactores, magia y armaduras.
 
-        &0/sf guide abre la guía.
-        &0/sf search busca recetas.
-
-        &4No abuses bugs, dupes ni mecanismos que dañen los TPS.
+        &4&lAVISO IMPORTANTE:
+        &0Prohibido abusar dupes, bugs o
+        &0relojes que degraden los TPS.
       - |-
-        &6&lEconomía
-
-        &0/bal y /pay
-        &0/bank
-        &0/tienda
-        &0/ca para subastas
-        &0/pwarp para comercios de jugadores.
+        &6&lEconomía y Comercio
+        &8&m──────────────────
+        &8▪ &1/bal &0- Ver tus Dragmas
+        &8▪ &1/pay <jugador> <monto>
+        &8▪ &1/bank &0- Banco central
+        &8▪ &1/ah &0o &1/ca &0- Subastas
+        &8▪ &1/pwarp &0- Tiendas de usuarios
+        &8▪ &1/sellinv &0- Vender materiales
+        &8▪ &1/tienda &0- Tienda oficial
       - |-
-        &6&lProtecciones
+        &9&lProtecciones de Base
+        &8&m──────────────────
+        &0Coloca tu &bProtectionStone &0para
+        &0asegurar tu territorio y cofres.
 
-        &0Coloca tu ProtectionStone.
-        &0/ps add <jugador>
-        &0/ps remove <jugador>
-        &0/ps home
-        &0/ps list
+        &8▪ &1/ps home &0- Ir a tu zona
+        &8▪ &1/ps add <jugador> &0- Dar permiso
+        &8▪ &1/ps remove <jugador>
+        &8▪ &1/ps view &0- Ver límites
+        &8▪ &1/ps list &0- Lista de protes
       - |-
-        &6&lAyuda
+        &5&lExploración Espacial
+        &8&m──────────────────
+        &0Construye cohetes de &dGalactiFun
+        &0y explora planetas lejanos:
+        &8▪ &0La Luna, Marte, Venus, etc.
 
-        &0Usa /discord para soporte y anuncios.
-        &0Los rangos VIP duran 30 días.
+        &0Recuerda equipar tu traje
+        &0espacial con oxígeno antes de
+        &0despegar hacia el vacío.
+      - |-
+        &4&lSoporte y Comunidad
+        &8&m──────────────────
+        &8▪ &1/discord &0- Canal de ayuda
+        &8▪ &1/jack <mensaje> &0- Reportes directos
 
-        &2Gracias por jugar en DrakesCraft.
+        &2¡Gracias por construir y
+        &2progresar en DrakesCraft!
   oldschool:
     cooldown: 30d
     permission: drakes.kit.oldschool
@@ -4051,7 +4087,7 @@ kits:
       soulbound: true
       unbreakable: true
       pdc:
-        "odysseia:tartaro_armor": "1"
+        odysseia:tartaro_armor: '1'
     - material: NETHERITE_CHESTPLATE
       amount: 1
       name: '&4&l✦ Coraza del Castigo Eterno ✦'
@@ -4076,7 +4112,7 @@ kits:
       soulbound: true
       unbreakable: true
       pdc:
-        "odysseia:tartaro_armor": "1"
+        odysseia:tartaro_armor: '1'
     - material: NETHERITE_LEGGINGS
       amount: 1
       name: '&4&l✦ Grebas de las Cadenas Primordiales ✦'
@@ -4102,7 +4138,7 @@ kits:
       soulbound: true
       unbreakable: true
       pdc:
-        "odysseia:tartaro_armor": "1"
+        odysseia:tartaro_armor: '1'
     - material: NETHERITE_BOOTS
       amount: 1
       name: '&4&l✦ Botas del Río Aqueronte ✦'
@@ -4128,7 +4164,7 @@ kits:
       soulbound: true
       unbreakable: true
       pdc:
-        "odysseia:tartaro_armor": "1"
+        odysseia:tartaro_armor: '1'
     - material: NETHERITE_HOE
       amount: 1
       name: '&4&l✦ Guadaña Espectral de Caronte ✦'
@@ -4152,7 +4188,7 @@ kits:
       soulbound: true
       unbreakable: true
       pdc:
-        "odysseia:charon_scythe": "1"
+        odysseia:charon_scythe: '1'
     - special-item: PAPA_DE_MAR_ESPECTRAL
       material: POISONOUS_POTATO
       amount: 1
@@ -4162,7 +4198,8 @@ kits:
       - '&7Relicario ancestral de DrakesCraft teñido por la niebla del Tártaro.'
       - '&7Cruzó temporadas y guerras, y ahora porta la bendición de Caronte.'
       - '&5✦ Portarla en tu inventario te hace inmune a las Sombras del Vacío.'
-      - '&8"Quien entrega una moneda a Caronte cruza el río; quien entrega esta papa manda sobre él."'
+      - '&8"Quien entrega una moneda a Caronte cruza el río; quien entrega esta papa
+        manda sobre él."'
       - '&8&m--------------------------------'
       enchantments:
         unbreaking: 10
@@ -4188,6 +4225,181 @@ kits:
       amount: 16
     - slimefun-item: ENHANCED_AUTO_CRAFTER
       amount: 1
+  inicial-clasico:
+    cooldown: '-1'
+    permission: odysseia.kit.inicial-clasico
+    protection-alias: starter
+    protection-amount: 1
+    vanilla-items:
+    - material: STONE_PICKAXE
+    - material: STONE_AXE
+    - material: STONE_SHOVEL
+    - material: STONE_SWORD
+    - material: BREAD
+      amount: 16
+    - material: TORCH
+      amount: 16
+    - material: WHITE_BED
+    - material: WRITTEN_BOOK
+      name: '&#55FF55&l✦ Guía de Clásico ✦'
+      book-title: 'Guía de Clásico'
+      author: 'Staff DrakesCraft'
+      lore:
+      - '&8&m────────────────────────────────────────'
+      - '&7Manual oficial de supervivencia para Clásico.'
+      - '&7Aprende sobre protecciones, comandos y reglas.'
+      - ''
+      - '&e➤ Haz clic derecho para abrir la guía'
+      - '&8&m────────────────────────────────────────'
+      pages:
+      - |-
+        &2&lDrakesCraft &8· &6&lClásico
+        &8&m──────────────────
+        &0¡Bienvenido al modo Clásico!
+        &0Progresión 100% vanilla con
+        &0generación de mundo &2Terralith&0.
+        &0Sin máquinas ni atajos.
+
+        &8▪ &0Web: &1web.drakescraft.cl
+        &8▪ &0Discord: &1discord.gg/rv3vtXZTk7
+      - |-
+        &6&lPrimeros Pasos
+        &8&m──────────────────
+        &8▪ &1/spawn &0- Regresar al spawn
+        &8▪ &1/rtp &0- Ir al mundo salvaje
+        &8▪ &1/sethome &0y &1/home &0- Tu base
+        &8▪ &1/tpa <jugador> &0- Enviar TP
+        &8▪ &1/modalidades &0- Selector de red
+        &8▪ &1/menu &0- Panel general
+      - |-
+        &9&lProtecciones de Base
+        &8&m──────────────────
+        &0Coloca tu &bProtectionStone &0para
+        &0blindar tu casa y tus cofres.
+
+        &8▪ &1/ps home &0- Ir a tu protección
+        &8▪ &1/ps add <jugador> &0- Dar acceso
+        &8▪ &1/ps remove <jugador>
+        &8▪ &1/ps list &0- Tus terrenos
+        &8▪ &1/ps view &0- Mostrar borde
+      - |-
+        &4&lPureza y Reglas
+        &8&m──────────────────
+        &0En Clásico impera la esencia
+        &0original de Minecraft.
+        &8▪ &0Slimefun está bloqueado.
+        &8▪ &0Vuelo, god y atajos apagados.
+        &8▪ &0Inventario aislado de otras
+        &0modalidades por seguridad.
+      - |-
+        &6&lEconomía y Comercio
+        &8&m──────────────────
+        &0Tus Dragmas son globales en
+        &0toda la red DrakesCraft.
+        &8▪ &1/bal &0- Ver tu saldo
+        &8▪ &1/pay <jugador> <monto>
+        &8▪ &1/bank &0- Banco central
+        &0Vende tus recursos vanilla para
+        &0amasar fortuna en el servidor.
+      - |-
+        &1&lSoporte y Reportes
+        &8&m──────────────────
+        &8▪ &1/discord &0- Comunidad oficial
+        &8▪ &1/jack <mensaje> &0- Reportes directos
+
+        &2¡Disfruta la experiencia vanilla
+        &2más pura en DrakesCraft!
+  inicial-onechunk:
+    cooldown: '-1'
+    permission: odysseia.kit.inicial-onechunk
+    vanilla-items:
+    - material: STONE_PICKAXE
+      name: '&d&lPico del Primer Chunk'
+      enchantments:
+        efficiency: 2
+        unbreaking: 3
+    - material: STONE_AXE
+      name: '&d&lHacha del Primer Chunk'
+      enchantments:
+        unbreaking: 3
+    - material: STONE_SHOVEL
+    - material: STONE_SWORD
+      name: '&d&lEspada del Primer Chunk'
+      enchantments:
+        sharpness: 2
+        unbreaking: 3
+    - material: COOKED_BEEF
+      amount: 16
+    - material: TORCH
+      amount: 32
+    - material: CHEST
+    - material: WATER_BUCKET
+    - material: OAK_SAPLING
+      amount: 2
+    - material: WRITTEN_BOOK
+      name: '&#FFAA00&l✦ Guía de OneChunk ✦'
+      book-title: 'Guía de OneChunk'
+      author: 'Staff DrakesCraft'
+      lore:
+      - '&8&m────────────────────────────────────────'
+      - '&7Manual de supervivencia en un único chunk (16x16).'
+      - '&7Bucle dimensional, optimización y Slimefun.'
+      - ''
+      - '&e➤ Haz clic derecho para abrir la guía'
+      - '&8&m────────────────────────────────────────'
+      pages:
+      - |-
+        &6&lDrakesCraft &8· &e&lOneChunk
+        &8&m──────────────────
+        &0¡El reto supremo de espacio!
+        &0Estás confinado estrictamente
+        &0a un único chunk de 16x16
+        &0bloques en el vacío.
+
+        &8▪ &0Web: &1web.drakescraft.cl
+        &8▪ &0Discord: &1discord.gg/rv3vtXZTk7
+      - |-
+        &6&lLímites y Fronteras
+        &8&m──────────────────
+        &0No puedes construir ni caminar
+        &0más allá del borde de tu chunk.
+        &0Tu canvas es 100% vertical:
+        &8▪ &0Desde la bedrock (Y=-64)
+        &8▪ &0Hasta el cielo (Y=320).
+      - |-
+        &d&lBucle Dimensional
+        &8&m──────────────────
+        &0Cava hasta el fondo absoluto o
+        &0asciende a la cima para viajar
+        &0en un ciclo infinito entre:
+        &8▪ &2Overworld &8➔ &cNether &8➔ &eEnd
+        &0¡Aprovecha para recolectar
+        &0recursos de cada dimensión!
+      - |-
+        &2&lSlimefun en 16x16
+        &8&m──────────────────
+        &0¡Slimefun 4 está habilitado!
+        &8▪ &1/sf guide &0- Guía y recetas
+        &0Optimiza tu espacio construyendo
+        &0granjas verticales compactas,
+        &0generadores apilados y redes de
+        &0energía multidimensionales.
+      - |-
+        &3&lConsejos Clave
+        &8&m──────────────────
+        &8▪ &0Usa trampas de mobs eficientes.
+        &8▪ &0Ilumina cada piso vertical.
+        &8▪ &0Guarda agua para crear fuentes
+        &0infinitas en diferentes capas.
+        &8▪ &1/spawn &0y &1/sethome &0- Atajos
+      - |-
+        &4&lSoporte y Comunidad
+        &8&m──────────────────
+        &8▪ &1/discord &0- Canal de ayuda
+        &8▪ &1/jack <mensaje> &0- Reportes directos
+
+        &2¡Demuestra tu genialidad técnica
+        &2en el espacio más reducido!
   navidad_2026:
     # Kit Navidad: cosmetico y tematico, solo items vanilla (sin Slimefun, sin atributos, sin encantamientos).
     # Vigencia comercial 1-31 dic (la imponen la web y Tebex); entrega unica por transaccion (PurchaseService).
@@ -4306,20 +4518,6 @@ exploit-guard:
     - ushop
     - ah
     - auctionhouse
-island-fall-safety:
-  # Opt-in: preserves existing behaviour until explicitly enabled.
-  enabled: false
-  # Exact world names; combat, void and border damage are unaffected.
-  worlds:
-  - bskyblock_world
-  - bskyblock_world_nether
-  - bskyblock_world_the_end
-  - oneblock_world
-  - oneblock_world_nether
-  - oneblock_world_the_end
-  - onechunk_world
-  - onechunk_world_nether
-  - onechunk_world_the_end
 modalidades:
   modos:
     survival:
@@ -4333,7 +4531,7 @@ modalidades:
       - world_the_end
     clasico:
       nombre: '&2Clasico'
-      descripcion: Minecraft survival tradicional, sin maquinas.
+      descripcion: Minecraft de siempre con Terralith, sin maquinas.
       icono: OAK_SAPLING
       comando: clasico
       mundos:
@@ -4347,8 +4545,6 @@ modalidades:
       comando: skyblock
       mundos:
       - bskyblock_world
-      - bskyblock_world_nether
-      - bskyblock_world_the_end
     oneblock:
       nombre: '&dOneBlock'
       descripcion: Un solo bloque infinito, por fases.
@@ -4358,6 +4554,14 @@ modalidades:
       - oneblock_world
       - oneblock_world_nether
       - oneblock_world_the_end
+    laboratorio:
+      nombre: '&eLaboratorio'
+      descripcion: Creativo para probar maquinas. Se borra cada lunes. Nada sale de
+        aqui.
+      icono: CRAFTING_TABLE
+      comando: laboratorio
+      mundos:
+      - laboratorio
     onechunk:
       nombre: '&6OneChunk'
       descripcion: Un solo chunk (16x16) con Slimefun y bucle dimensional infinito.
@@ -4367,14 +4571,6 @@ modalidades:
       - onechunk_world
       - onechunk_world_nether
       - onechunk_world_the_end
-    laboratorio:
-      nombre: '&eLaboratorio'
-      descripcion: Creativo para probar maquinas. Se borra cada lunes. Nada sale de
-        aqui.
-      icono: CRAFTING_TABLE
-      comando: laboratorio
-      mundos:
-      - laboratorio
   comando-spawn: spawn
   bovedas:
     filas: 6
@@ -4384,9 +4580,9 @@ modalidades:
     modalidades-aisladas:
     - skyblock
     - oneblock
-    - onechunk
     - clasico
     - laboratorio
+    - onechunk
     comandos-restringidos:
       clasico:
       - sf
@@ -4511,7 +4707,6 @@ modalidades:
     gestionan-su-spawn:
     - skyblock
     - oneblock
-    - onechunk
 corrupt-item-guard:
   enabled: true
 moderacion:
@@ -4537,70 +4732,95 @@ threadbudget:
   container-pid-ceiling: 512
   realert-step: 25
   realert-cooldown-minutes: 15
+halloween-plus:
+  enabled: true
+  blood-moon-every-nights: 2
+  horror-extra-events: 0
+  horror-min-interval-minutes: 8
+  trick-or-treat-cooldown-seconds: 45
+  trick-or-treat-daily-cap: 12
+  trick-or-treat-treat-chance: 0.7
+  worlds:
+  - world
+welcome-menu:
+  enabled: true
+  delay-ticks: 40
 events:
   november-calendar:
-    enabled: true
+    enabled: false
     year: 2026
     timezone: America/Santiago
     pre-announce-minutes: 10
     days:
-      1:
+      '1':
         enabled: true
-      2:
+      '2':
         enabled: true
-      3:
+      '3':
         enabled: true
-      4:
+      '4':
         enabled: true
-      5:
+      '5':
         enabled: true
-      6:
+      '6':
         enabled: true
-      7:
+      '7':
         enabled: true
-      8:
+      '8':
         enabled: true
-      9:
+      '9':
         enabled: true
-      10:
+      '10':
         enabled: true
-      11:
+      '11':
         enabled: true
-      12:
+      '12':
         enabled: true
-      13:
+      '13':
         enabled: true
-      14:
+      '14':
         enabled: true
-      15:
+      '15':
         enabled: true
-      16:
+      '16':
         enabled: true
-      17:
+      '17':
         enabled: true
-      18:
+      '18':
         enabled: true
-      19:
+      '19':
         enabled: true
-      20:
+      '20':
         enabled: true
-      21:
+      '21':
         enabled: true
-      22:
+      '22':
         enabled: true
-      23:
+      '23':
         enabled: true
-      24:
+      '24':
         enabled: true
-      25:
+      '25':
         enabled: true
-      26:
+      '26':
         enabled: true
-      27:
+      '27':
         enabled: true
-      28:
+      '28':
         enabled: true
-      29:
+      '29':
         enabled: true
-      30:
+      '30':
         enabled: true
+island-fall-safety:
+  enabled: true
+  worlds:
+  - bskyblock_world
+  - bskyblock_world_nether
+  - bskyblock_world_the_end
+  - oneblock_world
+  - oneblock_world_nether
+  - oneblock_world_the_end
+  - onechunk_world
+  - onechunk_world_nether
+  - onechunk_world_the_end
