@@ -11,6 +11,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.InventoryClickEvent;
+import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.event.inventory.InventoryDragEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.InventoryHolder;
@@ -263,16 +264,28 @@ public final class ModalidadesCommand implements CommandExecutor, Listener {
         };
     }
 
-    @EventHandler(priority = EventPriority.HIGHEST)
+    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = false)
     public void onDrag(InventoryDragEvent event) {
-        if (event.getInventory().getHolder() instanceof Holder) event.setCancelled(true);
+        if (event.getInventory().getHolder() instanceof Holder || event.getView().getTopInventory().getHolder() instanceof Holder) {
+            event.setCancelled(true);
+            if (event.getWhoClicked() instanceof Player player) {
+                if (event.getCursor() != null && event.getCursor().getType() != Material.AIR) {
+                    event.getView().setCursor(null);
+                }
+                player.updateInventory();
+            }
+        }
     }
 
-    @EventHandler
+    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = false)
     public void onClick(InventoryClickEvent event) {
-        if (!(event.getInventory().getHolder() instanceof Holder holder)) return;
+        if (!(event.getView().getTopInventory().getHolder() instanceof Holder holder)) return;
         event.setCancelled(true);
         if (!(event.getWhoClicked() instanceof Player player)) return;
+        if (event.getCursor() != null && event.getCursor().getType() != Material.AIR) {
+            event.getView().setCursor(null);
+        }
+        player.updateInventory();
         int rawSlot = event.getRawSlot();
         if (rawSlot < 0 || rawSlot >= event.getInventory().getSize()) return;
 
@@ -325,6 +338,24 @@ public final class ModalidadesCommand implements CommandExecutor, Listener {
             if (!target.command().isBlank()) {
                 player.performCommand(target.command());
             }
+        }
+    }
+
+    @EventHandler(priority = EventPriority.HIGHEST)
+    public void onClose(InventoryCloseEvent event) {
+        if (!(event.getInventory().getHolder() instanceof Holder)) return;
+        if (event.getPlayer() instanceof Player player) {
+            if (event.getView().getCursor() != null && event.getView().getCursor().getType() != Material.AIR) {
+                event.getView().setCursor(null);
+            }
+            // Purgar cualquier item que pudiera haberse colado al inventario del jugador
+            for (int i = 0; i < player.getInventory().getSize(); i++) {
+                ItemStack item = player.getInventory().getItem(i);
+                if (item != null && item.hasItemMeta() && item.getItemMeta().getPersistentDataContainer().has(MenuUtils.MENU_ITEM_KEY, org.bukkit.persistence.PersistentDataType.BYTE)) {
+                    player.getInventory().setItem(i, null);
+                }
+            }
+            player.updateInventory();
         }
     }
 

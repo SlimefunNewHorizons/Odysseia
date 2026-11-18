@@ -9,6 +9,8 @@ import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.SkullMeta;
+import org.bukkit.NamespacedKey;
+import org.bukkit.persistence.PersistentDataType;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -23,6 +25,7 @@ import java.util.regex.Pattern;
 public final class MenuUtils {
 
     private static final Pattern HEX_PATTERN = Pattern.compile("&#([A-Fa-f0-9]{6})");
+    public static final NamespacedKey MENU_ITEM_KEY = new NamespacedKey("odysseia", "menu_gui_item");
 
     private MenuUtils() {
     }
@@ -83,6 +86,7 @@ public final class MenuUtils {
         ItemMeta meta = item.getItemMeta();
         if (meta != null) {
             meta.setDisplayName(colorize(name));
+            meta.getPersistentDataContainer().set(MENU_ITEM_KEY, PersistentDataType.BYTE, (byte) 1);
             item.setItemMeta(meta);
         }
         return item;
@@ -104,6 +108,7 @@ public final class MenuUtils {
                 meta.addItemFlags(ItemFlag.HIDE_ENCHANTS);
             }
             meta.addItemFlags(ItemFlag.HIDE_ATTRIBUTES);
+            meta.getPersistentDataContainer().set(MENU_ITEM_KEY, PersistentDataType.BYTE, (byte) 1);
             item.setItemMeta(meta);
         }
         return item;
