@@ -4322,6 +4322,13 @@ island-fall-safety:
   - onechunk_world_the_end
 modalidades:
   modos:
+    lobby:
+      nombre: '&bLobby'
+      descripcion: Punto de encuentro y selector de modalidades.
+      icono: BEACON
+      comando: lobby
+      mundos:
+      - spawnwarps
     survival:
       nombre: '&aSlimefun'
       descripcion: Maquinas, magia, jefes y progresion completa.
@@ -4456,7 +4463,23 @@ modalidades:
       - slimefun stats
       - modalidad
       - modalidades
+      - modalidades *
+      - modalidad *
+      - modos
+      - modos *
+      - modes
+      - modes *
+      - menu
+      - modos-menu
+      - lobby
+      - hub
+      - l
       - spawn
+      - island
+      - is
+      - ob
+      - oc
+      - onechunk
       - laboratorio
       - survival
       - clasico
@@ -4506,8 +4529,10 @@ modalidades:
     enabled: true
     mundos:
       survival: world
+      laboratorio: laboratorio
+      clasico: clasico
     comando-lobby: lobby
-    mundo-lobby: SpawnWarps
+    mundo-lobby: spawnwarps
     gestionan-su-spawn:
     - skyblock
     - oneblock
@@ -4604,3 +4629,9 @@ events:
         enabled: true
       30:
         enabled: true
+
+# Proteccion de persistencia de aldeanos (con o sin nametag) y mascotas/animales domesticables
+# exclusivamente dentro de regiones protegidas de ProtectionStones / WorldGuard.
+entity-protection:
+  enabled: true
+  sweep-interval-ticks: 1200

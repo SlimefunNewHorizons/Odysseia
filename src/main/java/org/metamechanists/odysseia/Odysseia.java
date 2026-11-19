@@ -58,6 +58,7 @@ public final class Odysseia extends JavaPlugin {
     private org.metamechanists.odysseia.listeners.SFMasterWatcherListener sfMasterWatcher;
     private org.metamechanists.odysseia.listeners.MaintenanceGuardListener maintenanceGuard;
     private org.metamechanists.odysseia.economy.EconomyWatchdog economyWatchdog;
+    private org.metamechanists.odysseia.listeners.ProtectedEntityPersistenceListener protectedEntityPersistence;
     private org.metamechanists.odysseia.listeners.ResourcePackListener resourcePack;
     private org.metamechanists.odysseia.services.VipExpiryAlertService vipExpiryAlertService;
     private org.metamechanists.odysseia.services.ServerChangelogService changelogService;
@@ -344,6 +345,9 @@ public final class Odysseia extends JavaPlugin {
         this.economyWatchdog = new org.metamechanists.odysseia.economy.EconomyWatchdog(this);
         Bukkit.getScheduler().runTaskLater(this, economyWatchdog::start, 60L);
         Bukkit.getPluginManager().registerEvents(maintenanceGuard, this);
+        this.protectedEntityPersistence = new org.metamechanists.odysseia.listeners.ProtectedEntityPersistenceListener(this);
+        Bukkit.getPluginManager().registerEvents(this.protectedEntityPersistence, this);
+        this.protectedEntityPersistence.startSweep();
 
         // Servicio de auditoría y changelog automático a Discord
         this.changelogService = new org.metamechanists.odysseia.services.ServerChangelogService(this);
@@ -685,6 +689,9 @@ public final class Odysseia extends JavaPlugin {
         if (economyWatchdog != null) {
             economyWatchdog.stop();
         }
+        if (protectedEntityPersistence != null) {
+            protectedEntityPersistence.stopSweep();
+        }
         if (legacyCombat != null) {
             legacyCombat.retirarDeTodos();
         }
@@ -993,11 +1000,18 @@ public final class Odysseia extends JavaPlugin {
             if (Bukkit.getOnlinePlayers().isEmpty()) {
                 return;
             }
+            List<String> excludedWorlds = getConfig().getStringList("papa-de-mar.delivery.mundos-excluidos");
+            List<String> labWorlds = getConfig().getStringList("modalidades.modos.laboratorio.mundos");
             org.bukkit.inventory.ItemStack potato = createPapaDeMarItem();
+            String message = ChatColor.translateAlternateColorCodes('&',
+                    getConfig().getString("papa-de-mar.delivery.message", "&eRecibiste la &6&l✦ Papa de mar ✦&e."));
             for (Player p : Bukkit.getOnlinePlayers()) {
-                p.getInventory().addItem(potato);
-                p.sendMessage(ChatColor.translateAlternateColorCodes('&',
-                        getConfig().getString("papa-de-mar.delivery.message", "&eRecibiste la &6&l✦ Papa de mar ✦&e.")));
+                if (!org.metamechanists.odysseia.papa.PapaDeMarService.debeRecibirEntrega(
+                        p.getWorld().getName(), excludedWorlds, labWorlds)) {
+                    continue;
+                }
+                p.getInventory().addItem(potato.clone());
+                p.sendMessage(message);
             }
         }, periodTicks, periodTicks));
     }
