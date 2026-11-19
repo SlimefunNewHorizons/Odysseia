@@ -4560,3 +4560,9 @@ events:
         enabled: true
       30:
         enabled: true
+
+# Proteccion de persistencia de aldeanos (con o sin nametag) y mascotas/animales domesticables
+# exclusivamente dentro de regiones protegidas de ProtectionStones / WorldGuard.
+entity-protection:
+  enabled: true
+  sweep-interval-ticks: 1200

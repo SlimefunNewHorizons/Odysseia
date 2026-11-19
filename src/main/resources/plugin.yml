@@ -9,6 +9,7 @@ softdepend:
   - LuckPerms
   - Essentials
   - Vault
+  - WorldGuard
   - ProtectionStones
   - Slimefun
   - DiosesDrakes

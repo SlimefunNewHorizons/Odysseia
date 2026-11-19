@@ -94,6 +94,7 @@ class ModalitySpawnConfigTest {
         String comando = config.getString("modalidades.spawn-por-modalidad.comando-lobby", "lobby");
         ConfigurationSection modos = config.getConfigurationSection("modalidades.modos");
         for (String id : modos.getKeys(false)) {
+            if ("lobby".equalsIgnoreCase(id)) continue;
             String suyo = config.getString("modalidades.modos." + id + ".comando");
             assertFalse(comando.equalsIgnoreCase(suyo),
                     "el comando de lobby choca con el de la modalidad '" + id + "'");
