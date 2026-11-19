@@ -994,11 +994,18 @@ public final class Odysseia extends JavaPlugin {
             if (Bukkit.getOnlinePlayers().isEmpty()) {
                 return;
             }
+            List<String> excludedWorlds = getConfig().getStringList("papa-de-mar.delivery.mundos-excluidos");
+            List<String> labWorlds = getConfig().getStringList("modalidades.modos.laboratorio.mundos");
             org.bukkit.inventory.ItemStack potato = createPapaDeMarItem();
+            String message = ChatColor.translateAlternateColorCodes('&',
+                    getConfig().getString("papa-de-mar.delivery.message", "&eRecibiste la &6&l✦ Papa de mar ✦&e."));
             for (Player p : Bukkit.getOnlinePlayers()) {
-                p.getInventory().addItem(potato);
-                p.sendMessage(ChatColor.translateAlternateColorCodes('&',
-                        getConfig().getString("papa-de-mar.delivery.message", "&eRecibiste la &6&l✦ Papa de mar ✦&e.")));
+                if (!org.metamechanists.odysseia.papa.PapaDeMarService.debeRecibirEntrega(
+                        p.getWorld().getName(), excludedWorlds, labWorlds)) {
+                    continue;
+                }
+                p.getInventory().addItem(potato.clone());
+                p.sendMessage(message);
             }
         }, periodTicks, periodTicks));
     }
