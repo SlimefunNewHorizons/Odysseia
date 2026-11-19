@@ -43,7 +43,7 @@ commands:
     description: Menu para saltar entre Survival, SkyBlock y OneBlock.
     aliases: [modalidad, modos, modes, modalities]
   lobby:
-    description: Te lleva al lobby principal (SpawnWarps).
+    description: Te lleva al lobby principal.
     aliases: [hub, l]
   jack:
     description: Envía un reporte o mensaje privado directamente a Jack y al sistema SAORI.

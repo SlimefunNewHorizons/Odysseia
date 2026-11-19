@@ -101,6 +101,35 @@ public final class PapaDeMarService {
         return titulo;
     }
 
+    /**
+     * Determina si un jugador en {@code worldName} debe recibir la entrega periodica de Papa de mar.
+     *
+     * <p>Nunca se entrega en el Laboratorio ni en mundos excluidos explicitamente en config:
+     * el inventario del laboratorio es creativo/aislado y se descarta al salir.
+     */
+    public static boolean debeRecibirEntrega(String worldName, List<String> excludedWorlds, List<String> labWorlds) {
+        if (worldName == null || worldName.isBlank()) return false;
+        String norm = worldName.toLowerCase(Locale.ROOT);
+        if (norm.equals("laboratorio") || norm.startsWith("laboratorio_") || norm.startsWith("world_lab")) {
+            return false;
+        }
+        if (matchesAnyWorld(norm, excludedWorlds)) return false;
+        if (matchesAnyWorld(norm, labWorlds)) return false;
+        return true;
+    }
+
+    private static boolean matchesAnyWorld(String normalizedWorld, List<String> configuredWorlds) {
+        if (configuredWorlds == null) return false;
+        for (String entry : configuredWorlds) {
+            if (entry == null || entry.isBlank()) continue;
+            String candidate = entry.trim().toLowerCase(Locale.ROOT);
+            if (normalizedWorld.equals(candidate) || normalizedWorld.startsWith(candidate + "_")) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     public static String obtenerModalidad(String worldName) {
         if (worldName == null) return "survival";
         String norm = worldName.toLowerCase(Locale.ROOT);
