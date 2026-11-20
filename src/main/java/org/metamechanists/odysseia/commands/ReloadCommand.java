@@ -165,6 +165,29 @@ public final class ReloadCommand implements CommandExecutor, TabCompleter {
             sender.sendMessage(color("&cEl vigilante de economia no esta activo."));
             return true;
         }
+        if (args.length >= 2 && args[1].equalsIgnoreCase("gastos")) {
+            org.metamechanists.odysseia.economy.EconomyLedger ledger = plugin.getEconomyLedger();
+            if (ledger == null) {
+                sender.sendMessage(color("&cEl libro mayor no esta activo."));
+                return true;
+            }
+            int dias = 1;
+            String jugador = null;
+            for (int i = 2; i < args.length; i++) {
+                if (args[i].matches("\\d{1,3}")) {
+                    dias = Integer.parseInt(args[i]);
+                } else {
+                    jugador = args[i];
+                }
+            }
+            final int d = Math.min(dias, 90);
+            final String j = jugador;
+            org.bukkit.Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
+                List<String> lineas = ledger.informe(d, j);
+                lineas.forEach(l -> sender.sendMessage(color(l)));
+            });
+            return true;
+        }
         if (args.length < 2 || args[1].equalsIgnoreCase("estado")) {
             sender.sendMessage(color("&6[SII] &7" + sii.resumen().replace("\n", "\n&7")));
             return true;
@@ -253,7 +276,7 @@ public final class ReloadCommand implements CommandExecutor, TabCompleter {
             return List.of("start", "status", "cancel");
         }
         if (args.length == 2 && args[0].equalsIgnoreCase("sii")) {
-            return List.of("estado", "liberar", "confiscar", "congelar");
+            return List.of("estado", "gastos", "liberar", "confiscar", "congelar");
         }
         return List.of();
     }

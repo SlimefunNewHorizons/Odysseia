@@ -58,6 +58,7 @@ public final class Odysseia extends JavaPlugin {
     private org.metamechanists.odysseia.listeners.SFMasterWatcherListener sfMasterWatcher;
     private org.metamechanists.odysseia.listeners.MaintenanceGuardListener maintenanceGuard;
     private org.metamechanists.odysseia.economy.EconomyWatchdog economyWatchdog;
+    private org.metamechanists.odysseia.economy.EconomyLedger economyLedger;
     private org.metamechanists.odysseia.listeners.ResourcePackListener resourcePack;
     private org.metamechanists.odysseia.services.VipExpiryAlertService vipExpiryAlertService;
     private org.metamechanists.odysseia.services.ServerChangelogService changelogService;
@@ -343,6 +344,8 @@ public final class Odysseia extends JavaPlugin {
         // SII: vigilante de economia (INC-065). Arranca un tick despues para que Vault y sBank ya esten registrados.
         this.economyWatchdog = new org.metamechanists.odysseia.economy.EconomyWatchdog(this);
         Bukkit.getScheduler().runTaskLater(this, economyWatchdog::start, 60L);
+        this.economyLedger = new org.metamechanists.odysseia.economy.EconomyLedger(this);
+        Bukkit.getScheduler().runTaskLater(this, economyLedger::start, 60L);
         Bukkit.getPluginManager().registerEvents(maintenanceGuard, this);
 
         // Servicio de auditoría y changelog automático a Discord
@@ -684,6 +687,9 @@ public final class Odysseia extends JavaPlugin {
 
     @Override
     public void onDisable() {
+        if (economyLedger != null) {
+            economyLedger.stop();
+        }
         if (economyWatchdog != null) {
             economyWatchdog.stop();
         }
@@ -1158,6 +1164,10 @@ public final class Odysseia extends JavaPlugin {
 
     public org.metamechanists.odysseia.listeners.ResourcePackListener getResourcePack() {
         return resourcePack;
+    }
+
+    public org.metamechanists.odysseia.economy.EconomyLedger getEconomyLedger() {
+        return economyLedger;
     }
 
     public org.metamechanists.odysseia.economy.EconomyWatchdog getEconomyWatchdog() {
