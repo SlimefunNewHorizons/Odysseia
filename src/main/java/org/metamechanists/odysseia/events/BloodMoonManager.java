@@ -267,6 +267,7 @@ public final class BloodMoonManager implements Listener {
     private boolean spawnHordeMob(MoonState state, Player player) {
         Location location = findSpawn(player);
         if (location == null || isProtected(location)) return false;
+        if (state.world().getDifficulty() == org.bukkit.Difficulty.PEACEFUL) return false; // Pacífico rechaza monstruos (#827)
 
         EntityType tipo = elegirTipo(state);
         Entity entity = state.world().spawnEntity(location, tipo);

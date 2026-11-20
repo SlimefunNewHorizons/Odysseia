@@ -1,5 +1,6 @@
 package org.metamechanists.odysseia.events;
 
+import org.bukkit.Difficulty;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -30,5 +31,12 @@ class HorrorNightSchedulerTest {
     void newNightAfterIntervalTriggers() {
         long last = 1_000_000L;
         assertTrue(HorrorNightScheduler.shouldTrigger(11442L, 11450L, last, last + INTERVAL, INTERVAL));
+    }
+
+    @Test
+    void peacefulBlocksMonsterApparitions() {
+        assertFalse(HorrorNightScheduler.permiteMonstruos(Difficulty.PEACEFUL));
+        assertTrue(HorrorNightScheduler.permiteMonstruos(Difficulty.EASY));
+        assertTrue(HorrorNightScheduler.permiteMonstruos(Difficulty.HARD));
     }
 }
