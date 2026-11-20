@@ -216,7 +216,7 @@ public class SupplyDropEvent implements ActiveEvent, Listener {
 
     private void spawnGuardians(Location loc) {
         World w = loc.getWorld();
-        if (w == null) return;
+        if (w == null || w.getDifficulty() == org.bukkit.Difficulty.PEACEFUL) return; // Pacífico rechaza monstruos (#827)
 
         for (int i = 0; i < 4; i++) {
             Location spawnLoc = loc.clone().add((i % 2 == 0 ? 2 : -2), 0, (i > 1 ? 2 : -2));

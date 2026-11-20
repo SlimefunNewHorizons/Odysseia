@@ -2,6 +2,7 @@ package org.metamechanists.odysseia.events;
 
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
+import org.bukkit.Difficulty;
 import org.bukkit.Location;
 import org.bukkit.Particle;
 import org.bukkit.Sound;
@@ -188,10 +189,19 @@ public class HorrorNightScheduler implements Listener {
         player.playSound(player.getLocation(), Sound.ENTITY_WARDEN_HEARTBEAT, 1.6f, 0.5f);
     }
 
+    /** En Pacífico Paper lanza IllegalStateException al generar cualquier monstruo. */
+    static boolean permiteMonstruos(Difficulty difficulty) {
+        return difficulty != Difficulty.PEACEFUL;
+    }
+
     /** Evento 2: Aparición fugaz de una Sombra del Vacío. */
     private void triggerShadowStalker(Player player) {
         Location behind = player.getLocation().subtract(player.getLocation().getDirection().multiply(2.5)).add(0, 0.5, 0);
         if (behind.getWorld() == null) return;
+        if (!permiteMonstruos(behind.getWorld().getDifficulty())) {
+            triggerCreepyWhispers(player); // Pacífico: el servidor rechaza monstruos (#827)
+            return;
+        }
 
         WitherSkeleton ghost = (WitherSkeleton) behind.getWorld().spawnEntity(behind, EntityType.WITHER_SKELETON);
         ghost.setCustomName(ChatColor.DARK_GRAY + "" + ChatColor.BOLD + "Sombra del Vacío");
@@ -232,6 +242,10 @@ public class HorrorNightScheduler implements Listener {
         }
         Location front = player.getLocation().add(player.getLocation().getDirection().multiply(8.0)).add(0, 0.2, 0);
         if (front.getWorld() == null) return;
+        if (!permiteMonstruos(front.getWorld().getDifficulty())) {
+            triggerCreepyWhispers(player); // Pacífico: el servidor rechaza monstruos (#827)
+            return;
+        }
 
         // Efecto visual: destello espectral con ojos blancos
         player.playSound(player.getLocation(), Sound.BLOCK_PORTAL_TRIGGER, 1.8f, 0.3f);
