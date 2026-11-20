@@ -162,6 +162,7 @@ public final class EconomyLedger {
         Map<String, double[]> porOrigen = new TreeMap<>();   // [gasto, ingreso, movimientos]
         Map<String, Double> porJugador = new java.util.HashMap<>();
         double[] casino = new double[2];
+        Map<String, double[]> porJuego = new TreeMap<>();   // [apostado, pagado, rondas]
         for (int i = 0; i < Math.max(1, dias); i++) {
             String dia = LocalDate.now().minusDays(i).toString();
             for (String l : leer(new File(dir, "ledger-" + dia + ".jsonl"))) {
@@ -176,6 +177,16 @@ public final class EconomyLedger {
                 if (d < 0) {
                     porJugador.merge(nombre, -d, Double::sum);
                 }
+            }
+            File rondas = new File(plugin.getDataFolder().getParentFile(), "MultiverseGambling/history/rounds-" + dia + ".jsonl");
+            for (String l : leer(rondas)) {
+                if (jugador != null && !jugador.equalsIgnoreCase(campo(l, "name"))) {
+                    continue;
+                }
+                double[] g = porJuego.computeIfAbsent(campo(l, "game"), k -> new double[3]);
+                g[0] += Double.parseDouble(campo(l, "bet"));
+                g[1] += Double.parseDouble(campo(l, "payout"));
+                g[2]++;
             }
             File sb = new File(plugin.getDataFolder().getParentFile(), "sBank/audit/transactions-" + dia + ".jsonl");
             for (String l : leer(sb)) {
@@ -203,6 +214,9 @@ public final class EconomyLedger {
             out.add(String.format(Locale.ROOT, "&eCasino (sBank) &7apostado &c%,.0f &7pagado &a%,.0f &7neto jugadores &f%,.0f",
                     casino[0], casino[1], casino[1] - casino[0]));
         }
+        porJuego.entrySet().stream().sorted((x, y) -> Double.compare(y.getValue()[0], x.getValue()[0]))
+                .forEach(e -> out.add(String.format(Locale.ROOT, "&e  %s &7apostado &c%,.0f &7pagado &a%,.0f &7neto jugadores &f%,.0f &7(%d rondas)",
+                        e.getKey(), e.getValue()[0], e.getValue()[1], e.getValue()[1] - e.getValue()[0], (long) e.getValue()[2])));
         if (jugador == null) {
             out.add("&6Top gastadores:");
             porJugador.entrySet().stream().sorted((x, y) -> Double.compare(y.getValue(), x.getValue())).limit(8)
