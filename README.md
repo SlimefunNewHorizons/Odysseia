@@ -6,32 +6,31 @@
 
 ### The sovereign operational engine, transactional commerce gateway & server administration suite for DrakesCraft
 
-[![Minecraft](https://img.shields.io/badge/Minecraft-1.21.11-7C4DFF?logo=minecraft&logoColor=white)](https://papermc.io/)
-[![Purpur](https://img.shields.io/badge/Purpur-1.21.11-FFA000?logo=purpur)](https://purpurmc.org/)
-[![Java](https://img.shields.io/badge/Java-21-ED8B00?logo=openjdk&logoColor=white)](https://openjdk.org/)
+[![Purpur](https://img.shields.io/badge/Purpur-26.2_%2F_1.21.11-FFA000?logo=purpur)](https://purpurmc.org/)
+[![Java](https://img.shields.io/badge/Java-21_%2F_25-ED8B00?logo=openjdk&logoColor=white)](https://openjdk.org/)
 [![Rust](https://img.shields.io/badge/Rust-2021_Workspace-DEA584?logo=rust&logoColor=white)](https://www.rust-lang.org/)
 [![License](https://img.shields.io/badge/License-GPL--3.0-blue)](./LICENSE)
 [![Platform](https://img.shields.io/badge/Network-DrakesCraft_Production-00E5FF)](https://web.drakescraft.cl)
 [![RepoRanker](https://reporanker.com/badge/SlimefunNewHorizons/Odysseia)](https://reporanker.com/repos/SlimefunNewHorizons/Odysseia)
 
-**A high-performance Paper/Purpur 1.21.11 production core that centralizes transactional store fulfillment, cross-modality inventory isolation, multi-tier kit progression, automated server maintenance windows, anti-exploit rate limiters, and horror night environmental events.**
+**A high-performance Purpur 26.2 / Paper 1.21.11 production core that centralizes transactional store fulfillment, cross-modality inventory isolation, multi-tier kit progression, automated server maintenance windows, anti-exploit rate limiters, and horror night environmental events.**
 
 [🌐 Official Portal](https://web.drakescraft.cl) ·
 [📖 Command Guide](https://web.drakescraft.cl/guia-comandos.html) ·
-[🛒 Store Catalog](https://web.drakescraft.cl/store.html) ·
+[🛒 Tebex Store](https://drakescraft-v2.tebex.io) ·
+[💬 Official Discord](https://discord.gg/rv3vtXZTk7) ·
 [🏛️ Ecosystem Repositories](https://github.com/SlimefunNewHorizons)
 
 </div>
 
-> ### 🏰 ¡Únete a la Comunidad Oficial de DrakesCraft!
-> 
-> * 🎮 **IP del Servidor**: `play.drakescraft.cl` *(Java 1.21.11 & Bedrock)*
-> * 💬 **Discord Oficial**: [discord.gg/drakescraft](https://discord.gg/rv3vtXZTk7)
-> * 🌐 **Web & Guía**: [web.drakescraft.cl](https://web.drakescraft.cl) — 🛒 **Tienda**: [web.drakescraft.cl/store](https://web.drakescraft.cl/store.html)
-> 
-> *¡Juega con este addon y más de 80 expansiones optimizadas en vivo en nuestra network de supervivencia técnica!*
+> ### 🏰 Comunidad Oficial de DrakesCraft
+>
+> * 🎮 **IP del Servidor**: `mc.drakescraft.cl` *(Java & Bedrock)*
+> * 💬 **Discord Oficial**: [discord.gg/rv3vtXZTk7](https://discord.gg/rv3vtXZTk7)
+> * 🌐 **Portal Web & Guía**: [web.drakescraft.cl](https://web.drakescraft.cl)
+> * 🛒 **Tienda Oficial**: [drakescraft-v2.tebex.io](https://drakescraft-v2.tebex.io)
 
----
+> **Nota de ecosistema (`StarSuites`):** En Temporada 2 (**Purpur 26.2 / Java 25**), Odysseia evoluciona e integra su plano operativo como módulo (`odysseia` / `star`) dentro de `drakes-server` en [Drakes-Suites v2.0.0-26.X](https://github.com/SlimefunNewHorizons/Drakes-Suites).
 
 ---
 
@@ -288,5 +287,5 @@ between unrelated servers, publish it, or delete it while issued cheques are sti
 This project is a sovereign fork maintained by [**JackStar6677-1**](https://github.com/JackStar6677-1) under [**DrakesCraft Labs**](https://github.com/SlimefunNewHorizons).
 
 - **Original Project:** Created by the upstream authors and the open-source community.
-- **DrakesCraft Optimizations:** Modernized for Paper/Purpur 1.21.11+, Java 21, high concurrency, asynchronous safety, and exploit/duplication prevention.
+- **DrakesCraft Optimizations:** Modernized for Purpur 26.2 / Paper 1.21.x, Java 21–25, high concurrency, asynchronous safety, and exploit/duplication prevention.
 - **License:** Distributed under the original **GNU General Public License v3.0 (GPLv3)** (or original upstream license). See the [LICENSE](LICENSE) file for complete terms.
