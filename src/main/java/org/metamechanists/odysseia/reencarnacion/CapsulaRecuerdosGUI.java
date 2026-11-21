@@ -10,6 +10,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
+import org.bukkit.event.inventory.InventoryAction;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.event.inventory.InventoryDragEvent;
@@ -122,6 +123,11 @@ public final class CapsulaRecuerdosGUI implements InventoryHolder, Listener {
             return;
         }
 
+        if (event.getAction() == InventoryAction.COLLECT_TO_CURSOR) {
+            event.setCancelled(true);
+            return;
+        }
+
         int rawSlot = event.getRawSlot();
 
         // Click en inventario superior
@@ -177,6 +183,9 @@ public final class CapsulaRecuerdosGUI implements InventoryHolder, Listener {
     }
 
     private void handleConfirm() {
+        if (this.confirmed) {
+            return;
+        }
         this.confirmed = true;
         List<ItemStack> capsuleItems = new ArrayList<>();
 

@@ -21,7 +21,10 @@ import org.bukkit.event.block.Action;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.ProjectileHitEvent;
 import org.bukkit.event.entity.ProjectileLaunchEvent;
+import org.bukkit.event.inventory.ClickType;
 import org.bukkit.event.inventory.InventoryClickEvent;
+import org.bukkit.event.inventory.InventoryDragEvent;
+import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerItemHeldEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
@@ -880,12 +883,43 @@ public final class BossItemListener implements Listener {
 
     @EventHandler
     public void onPlayerJoin(PlayerJoinEvent event) {
-        Bukkit.getScheduler().runTask(plugin, () -> synchronizeKratosBlades(event.getPlayer()));
+        Player player = event.getPlayer();
+        Bukkit.getScheduler().runTask(plugin, () -> {
+            if (player.isOnline()) {
+                synchronizeKratosBlades(player);
+            }
+        });
     }
 
     @EventHandler
     public void onItemHeld(PlayerItemHeldEvent event) {
-        Bukkit.getScheduler().runTask(plugin, () -> synchronizeKratosBlades(event.getPlayer()));
+        Player player = event.getPlayer();
+        Bukkit.getScheduler().runTask(plugin, () -> {
+            if (player.isOnline()) {
+                synchronizeKratosBlades(player);
+            }
+        });
+    }
+
+    static boolean shouldCancelKratosInventoryClick(
+            ClickType click,
+            int slot,
+            int hotbarButton,
+            boolean currentIsTemp,
+            boolean cursorIsTemp,
+            boolean offhandIsTemp,
+            boolean hotbarIsTemp
+    ) {
+        if (currentIsTemp || cursorIsTemp || hotbarIsTemp) {
+            return true;
+        }
+        if (click == ClickType.SWAP_OFFHAND && offhandIsTemp) {
+            return true;
+        }
+        if (slot == 40 && offhandIsTemp) {
+            return true;
+        }
+        return click == ClickType.NUMBER_KEY && slot == 40 && offhandIsTemp;
     }
 
     @EventHandler
@@ -894,12 +928,43 @@ public final class BossItemListener implements Listener {
             return;
         }
 
-        if (event.getSlot() == 40 && isKratosTempOffhand(event.getCurrentItem())) {
+        int hotbarButton = event.getHotbarButton();
+        ItemStack hotbarItem = (hotbarButton >= 0 && hotbarButton < 9)
+                ? player.getInventory().getItem(hotbarButton)
+                : null;
+        if (shouldCancelKratosInventoryClick(
+                event.getClick(),
+                event.getSlot(),
+                hotbarButton,
+                isKratosTempOffhand(event.getCurrentItem()),
+                isKratosTempOffhand(event.getCursor()),
+                isKratosTempOffhand(player.getInventory().getItemInOffHand()),
+                isKratosTempOffhand(hotbarItem)
+        )) {
             event.setCancelled(true);
             return;
         }
 
-        Bukkit.getScheduler().runTask(plugin, () -> synchronizeKratosBlades(player));
+        Bukkit.getScheduler().runTask(plugin, () -> {
+            if (player.isOnline()) {
+                synchronizeKratosBlades(player);
+            }
+        });
+    }
+
+    @EventHandler
+    public void onInventoryDrag(InventoryDragEvent event) {
+        if (isKratosTempOffhand(event.getOldCursor()) || isKratosTempOffhand(event.getCursor())) {
+            event.setCancelled(true);
+        }
+    }
+
+    @EventHandler
+    public void onPlayerDropItem(PlayerDropItemEvent event) {
+        if (isKratosTempOffhand(event.getItemDrop().getItemStack())) {
+            event.setCancelled(true);
+            event.getItemDrop().remove();
+        }
     }
 
     @EventHandler
@@ -908,7 +973,12 @@ public final class BossItemListener implements Listener {
                 || isKratosBlade(event.getOffHandItem())
                 || isKratosTempOffhand(event.getOffHandItem())) {
             event.setCancelled(true);
-            Bukkit.getScheduler().runTask(plugin, () -> synchronizeKratosBlades(event.getPlayer()));
+            Player player = event.getPlayer();
+            Bukkit.getScheduler().runTask(plugin, () -> {
+                if (player.isOnline()) {
+                    synchronizeKratosBlades(player);
+                }
+            });
         }
     }
 
