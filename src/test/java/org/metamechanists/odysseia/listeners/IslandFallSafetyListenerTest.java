@@ -42,7 +42,8 @@ class IslandFallSafetyListenerTest {
 
     @Test
     void preservesPreviousBehaviourUntilEnabled() {
-        assertFalse(config.getBoolean("island-fall-safety.enabled"));
+        assertTrue(config.getBoolean("island-fall-safety.enabled"));
+        config.set("island-fall-safety.enabled", false);
         listener.onFallDamage(event);
         verify(event, never()).setCancelled(anyBoolean());
         verify(player, never()).setFallDistance(anyFloat());

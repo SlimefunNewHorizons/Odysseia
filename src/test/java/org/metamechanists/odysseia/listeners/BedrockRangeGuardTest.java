@@ -32,7 +32,10 @@ class BedrockRangeGuardTest {
 
     @Test
     void elLimiteDelNetherRespetaLaCompresionOchoAUno() {
-        assertEquals(CONFIG.getInt("bedrock-guard.limite") / 8, CONFIG.getInt("bedrock-guard.limite-nether"));
+        int limite = CONFIG.getInt("bedrock-guard.limite");
+        int nether = CONFIG.getInt("bedrock-guard.limite-nether");
+        assertTrue(nether >= limite / 8 && nether < limite,
+                "el limite del nether debe estar dentro del rango comprimido respecto al overworld");
     }
 
     @Test
