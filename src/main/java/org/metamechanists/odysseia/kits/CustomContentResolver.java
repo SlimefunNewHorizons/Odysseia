@@ -54,6 +54,18 @@ public final class CustomContentResolver {
         return null;
     }
 
+    /** True si el encantamiento pertenece exclusivamente al namespace vanilla {@code minecraft}. */
+    public static boolean isVanillaEnchantment(Enchantment enchantment) {
+        return enchantment != null
+                && NamespacedKey.MINECRAFT.equalsIgnoreCase(enchantment.getKey().getNamespace());
+    }
+
+    /** Limita un nivel de encantamiento al rango legal vanilla {@code [1, maxLevel]}. */
+    public static int clampVanillaLevel(Enchantment enchantment, int level) {
+        int maxLevel = Math.max(1, enchantment.getMaxLevel());
+        return Math.min(Math.max(1, level), maxLevel);
+    }
+
     /** True si Slimefun esta cargado y se puede resolver contenido suyo. */
     public static boolean slimefunAvailable() {
         return slimefunClass() != null;

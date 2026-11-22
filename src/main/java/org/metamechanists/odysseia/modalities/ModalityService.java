@@ -1,5 +1,6 @@
 package org.metamechanists.odysseia.modalities;
 
+import org.bukkit.World;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -78,5 +79,13 @@ public final class ModalityService {
     /** True si el jugador esta fuera de la modalidad base (es decir, en una isla). */
     public boolean isIsland(Player player) {
         return !resolve(player).id().equals(FALLBACK_ID);
+    }
+
+    /** True si el mundo pertenece a la modalidad Clásico (por prefijo o por configuración). */
+    public static boolean isClasico(ModalityService modalityService, World world) {
+        if (world == null) return false;
+        String name = world.getName().toLowerCase(Locale.ROOT);
+        if (name.startsWith("clasico")) return true;
+        return modalityService != null && "clasico".equalsIgnoreCase(modalityService.resolve(world.getName()).id());
     }
 }

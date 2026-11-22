@@ -9,6 +9,8 @@ import org.bukkit.inventory.meta.BookMeta;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataType;
 import org.metamechanists.odysseia.Odysseia;
+import org.metamechanists.odysseia.kits.CustomContentResolver;
+import org.metamechanists.odysseia.modalities.ModalityService;
 
 import java.util.*;
 
@@ -31,9 +33,18 @@ public final class KitDeliveryService {
         ConfigurationSection section = plugin.getConfig().getConfigurationSection("kits." + kitName);
         if (section == null) return ActionResult.manual("Kit ausente en configuración: " + kitName);
         if (containsTransaction(player, transaction)) return ActionResult.manual("Se detectaron ítems de esta transacción; requiere reconciliación");
+        boolean clasico = player != null && ModalityService.isClasico(plugin.getModalityService(), player.getWorld());
+        List<Map<?, ?>> sourceItems = (clasico && section.isList("clasico-items"))
+                ? section.getMapList("clasico-items")
+                : section.getMapList("vanilla-items");
         List<ItemStack> items = new ArrayList<>();
-        for (Map<?, ?> values : section.getMapList("vanilla-items")) {
-            List<ItemStack> stacks = createItems(values, transaction);
+        boolean omittedSlimefun = false;
+        for (Map<?, ?> values : sourceItems) {
+            if (clasico && values.get("slimefun-item") != null) {
+                omittedSlimefun = true;
+                continue;
+            }
+            List<ItemStack> stacks = createItems(values, transaction, clasico);
             if (stacks == null) return ActionResult.manual("Item inválido en kit " + kitName + ": " + values.get("material"));
             items.addAll(stacks);
         }
@@ -43,6 +54,9 @@ public final class KitDeliveryService {
             if (protection.status() != ActionResult.Status.COMPLETED) return protection;
         }
         for (ItemStack item : items) player.getInventory().addItem(item);
+        if (omittedSlimefun) {
+            player.sendMessage(color("&e[Clásico] &7Los ítems de Slimefun del kit se omitieron por estar en Clásico."));
+        }
         return ActionResult.completed("kit=" + kitName + ";items=" + items.size());
     }
 
@@ -65,39 +79,52 @@ public final class KitDeliveryService {
                 }
                 if (amount < 1 || amount > 64) errors.add(kit + ": cantidad de ProtectionStone fuera de 1..64");
             }
-            int index = 0;
-            for (Map<?, ?> values : section.getMapList("vanilla-items")) {
-                index++;
-                String path = kit + ".vanilla-items[" + index + "]";
-                boolean fromSlimefun = values.get("slimefun-item") != null;
-                boolean fromSpecial = values.get("special-item") != null;
-                Material material = Material.matchMaterial(String.valueOf(values.get("material")));
-                if (!fromSlimefun && !fromSpecial && (material == null || !material.isItem())) {
-                    errors.add(path + ": material inválido");
-                    continue;
-                }
-                int amount = integer(values.get("amount"), 1);
-                if (amount < 1 || amount > 2304) errors.add(path + ": cantidad fuera de 1..2304");
-                if (material == Material.WRITTEN_BOOK
-                        && !(values.get("pages") instanceof List<?> pages && !pages.isEmpty())) {
-                    errors.add(path + ": libro sin páginas");
-                }
-                Object enchantments = values.get("enchantments");
-                if (enchantments instanceof Map<?, ?> map) {
-                    for (Map.Entry<?, ?> entry : map.entrySet()) {
-                        Enchantment enchantment = org.metamechanists.odysseia.kits.CustomContentResolver
-                                .enchantment(String.valueOf(entry.getKey()));
-                        int level = integer(entry.getValue(), 0);
-                        if (enchantment == null) errors.add(path + ": encantamiento desconocido " + entry.getKey());
-                        if (level < 1 || level > 255) errors.add(path + ": nivel inválido para " + entry.getKey());
-                    }
-                }
+            validateItemList(kit, "vanilla-items", section.getMapList("vanilla-items"), false, errors);
+            if (section.isList("clasico-items")) {
+                validateItemList(kit, "clasico-items", section.getMapList("clasico-items"), true, errors);
             }
         }
         return errors;
     }
 
-    private List<ItemStack> createItems(Map<?, ?> values, String transaction) {
+    private void validateItemList(String kit, String listKey, List<Map<?, ?>> entries, boolean forbidSlimefun, List<String> errors) {
+        int index = 0;
+        for (Map<?, ?> values : entries) {
+            index++;
+            String path = kit + "." + listKey + "[" + index + "]";
+            boolean fromSlimefun = values.get("slimefun-item") != null;
+            if (forbidSlimefun && fromSlimefun) {
+                errors.add(path + ": clasico-items no puede contener slimefun-item");
+                continue;
+            }
+            boolean fromSpecial = values.get("special-item") != null;
+            Material material = Material.matchMaterial(String.valueOf(values.get("material")));
+            if (!fromSlimefun && !fromSpecial && (material == null || !material.isItem())) {
+                errors.add(path + ": material inválido");
+                continue;
+            }
+            int amount = integer(values.get("amount"), 1);
+            if (amount < 1 || amount > 2304) errors.add(path + ": cantidad fuera de 1..2304");
+            if (material == Material.WRITTEN_BOOK
+                    && !(values.get("pages") instanceof List<?> pages && !pages.isEmpty())) {
+                errors.add(path + ": libro sin páginas");
+            }
+            Object enchantments = values.get("enchantments");
+            if (enchantments instanceof Map<?, ?> map) {
+                for (Map.Entry<?, ?> entry : map.entrySet()) {
+                    Enchantment enchantment = CustomContentResolver.enchantment(String.valueOf(entry.getKey()));
+                    int level = integer(entry.getValue(), 0);
+                    if (enchantment == null) errors.add(path + ": encantamiento desconocido " + entry.getKey());
+                    if (level < 1 || level > 255) errors.add(path + ": nivel inválido para " + entry.getKey());
+                }
+            }
+        }
+    }
+
+    private List<ItemStack> createItems(Map<?, ?> values, String transaction, boolean clasico) {
+        if (clasico && values.get("slimefun-item") != null) {
+            return List.of();
+        }
         // Un kit puede partir de un item especial (Papa de mar con PDC), Slimefun o vanilla.
         Object special = values.get("special-item");
         ItemStack item = null;
@@ -163,8 +190,15 @@ public final class KitDeliveryService {
         Object enchantments = values.get("enchantments");
         if (enchantments instanceof Map<?, ?> map) {
             for (Map.Entry<?, ?> entry : map.entrySet()) {
-                Enchantment enchantment = org.metamechanists.odysseia.kits.CustomContentResolver
-                        .enchantment(String.valueOf(entry.getKey()));
+                Enchantment enchantment = CustomContentResolver.enchantment(String.valueOf(entry.getKey()));
+                if (clasico) {
+                    if (!CustomContentResolver.isVanillaEnchantment(enchantment)) {
+                        continue;
+                    }
+                    int level = CustomContentResolver.clampVanillaLevel(enchantment, integer(entry.getValue(), 1));
+                    meta.addEnchant(enchantment, level, true);
+                    continue;
+                }
                 // Nunca entregar un kit reducido: si su proveedor de encantamientos no está
                 // cargado, abortar el ítem y con ello la entrega atómica del kit.
                 if (enchantment == null) {

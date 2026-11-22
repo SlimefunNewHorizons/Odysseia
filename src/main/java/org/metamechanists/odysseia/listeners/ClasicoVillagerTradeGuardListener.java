@@ -4,6 +4,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.NamespacedKey;
 import org.bukkit.World;
+import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.AbstractVillager;
 import org.bukkit.entity.Villager;
 import org.bukkit.event.EventHandler;
@@ -18,16 +19,21 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.Merchant;
 import org.bukkit.inventory.MerchantInventory;
 import org.bukkit.inventory.MerchantRecipe;
+import org.bukkit.inventory.meta.EnchantmentStorageMeta;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.plugin.Plugin;
+import org.metamechanists.odysseia.kits.CustomContentResolver;
 import org.metamechanists.odysseia.modalities.ModalityService;
 
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Set;
+import java.util.function.BiConsumer;
+import java.util.function.Consumer;
 
 /**
  * Blindaje y sanitización activa de aldeanos y vendedores ambulantes en la modalidad Clásico.
@@ -64,7 +70,8 @@ public final class ClasicoVillagerTradeGuardListener implements Listener {
             "villagertrade",
             "sfcalc",
             "slimybees",
-            "slimytreetaps"
+            "slimytreetaps",
+            "equivalencytech"
     );
 
     private final Plugin plugin;
@@ -93,13 +100,7 @@ public final class ClasicoVillagerTradeGuardListener implements Listener {
      * Determina si el mundo pertenece a la modalidad Clásico.
      */
     public boolean isClasico(World world) {
-        if (world == null) return false;
-        String name = world.getName().toLowerCase(Locale.ROOT);
-        if (name.startsWith("clasico")) return true;
-        if (modalityService != null) {
-            return "clasico".equalsIgnoreCase(modalityService.resolve(name).id());
-        }
-        return false;
+        return ModalityService.isClasico(modalityService, world);
     }
 
     /**
@@ -130,7 +131,7 @@ public final class ClasicoVillagerTradeGuardListener implements Listener {
             PersistentDataContainer pdc = meta.getPersistentDataContainer();
             for (NamespacedKey key : pdc.getKeys()) {
                 String ns = key.getNamespace().toLowerCase(Locale.ROOT);
-                if (SLIMEFUN_NAMESPACES.contains(ns) || ns.startsWith("slimefun")) {
+                if (SLIMEFUN_NAMESPACES.contains(ns) || ns.startsWith("slimefun") || ns.startsWith("equivalency")) {
                     return true;
                 }
             }
@@ -175,10 +176,140 @@ public final class ClasicoVillagerTradeGuardListener implements Listener {
     }
 
     /**
-     * Sanea la lista de recetas de un comerciante, purgando ofertas de Slimefun sin alterar
-     * los intercambios vanilla legítimos.
+     * Indica si un ItemStack posee encantamientos no-vanilla (namespace != {@code minecraft})
+     * o niveles por encima del máximo legal vanilla, tanto en encantamientos directos como
+     * almacenados en libros encantados.
+     */
+    public boolean hasIllegalEnchantments(ItemStack item) {
+        if (item == null || item.getType().isAir() || !item.hasItemMeta()) {
+            return false;
+        }
+        ItemMeta meta = item.getItemMeta();
+        if (meta == null) {
+            return false;
+        }
+        if (hasIllegalEnchantMap(meta.getEnchants())) {
+            return true;
+        }
+        return meta instanceof EnchantmentStorageMeta storage && hasIllegalEnchantMap(storage.getStoredEnchants());
+    }
+
+    private static boolean hasIllegalEnchantMap(Map<Enchantment, Integer> enchants) {
+        for (Map.Entry<Enchantment, Integer> entry : enchants.entrySet()) {
+            Enchantment enchantment = entry.getKey();
+            int level = entry.getValue();
+            if (!CustomContentResolver.isVanillaEnchantment(enchantment)
+                    || level < 1
+                    || level > Math.max(1, enchantment.getMaxLevel())) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private enum TradeAction {
+        KEEP,
+        REPLACE,
+        REMOVE
+    }
+
+    private record TradeSanitization(TradeAction action, MerchantRecipe sanitizedRecipe) {
+        private static final TradeSanitization KEEP = new TradeSanitization(TradeAction.KEEP, null);
+        private static final TradeSanitization REMOVE = new TradeSanitization(TradeAction.REMOVE, null);
+
+        private static TradeSanitization replace(MerchantRecipe recipe) {
+            return new TradeSanitization(TradeAction.REPLACE, recipe);
+        }
+    }
+
+    private TradeSanitization inspectAndSanitize(MerchantRecipe recipe) {
+        if (recipe == null || isSlimefunTrade(recipe)) {
+            return TradeSanitization.REMOVE;
+        }
+        ItemStack result = recipe.getResult();
+        if (result == null || result.getType().isAir() || !result.hasItemMeta()) {
+            return TradeSanitization.KEEP;
+        }
+        ItemStack sanitizedResult = result.clone();
+        ItemMeta meta = sanitizedResult.getItemMeta();
+        if (meta == null) {
+            return TradeSanitization.KEEP;
+        }
+
+        boolean hadEnchants = !meta.getEnchants().isEmpty();
+        boolean modified = sanitizeEnchantMap(
+                meta.getEnchants(),
+                meta::removeEnchant,
+                (ench, level) -> meta.addEnchant(ench, level, true));
+
+        if (meta instanceof EnchantmentStorageMeta storage) {
+            hadEnchants |= !storage.getStoredEnchants().isEmpty();
+            modified |= sanitizeEnchantMap(
+                    storage.getStoredEnchants(),
+                    storage::removeStoredEnchant,
+                    (ench, level) -> storage.addStoredEnchant(ench, level, true));
+        }
+
+        if (!modified) {
+            return TradeSanitization.KEEP;
+        }
+
+        boolean hasRemainingEnchants = !meta.getEnchants().isEmpty()
+                || (meta instanceof EnchantmentStorageMeta storage && !storage.getStoredEnchants().isEmpty());
+        // Un libro encantado (o ítem encantado) que solo tenía encantamientos no-vanilla queda vacío y roto: eliminar trade.
+        if (hadEnchants && !hasRemainingEnchants) {
+            return TradeSanitization.REMOVE;
+        }
+
+        sanitizedResult.setItemMeta(meta);
+        return TradeSanitization.replace(copyRecipeWithResult(recipe, sanitizedResult));
+    }
+
+    private static boolean sanitizeEnchantMap(
+            Map<Enchantment, Integer> enchants,
+            Consumer<Enchantment> remover,
+            BiConsumer<Enchantment, Integer> updater) {
+        boolean modified = false;
+        for (Map.Entry<Enchantment, Integer> entry : Map.copyOf(enchants).entrySet()) {
+            Enchantment enchantment = entry.getKey();
+            int level = entry.getValue();
+            if (!CustomContentResolver.isVanillaEnchantment(enchantment) || level < 1) {
+                remover.accept(enchantment);
+                modified = true;
+            } else {
+                int clamped = CustomContentResolver.clampVanillaLevel(enchantment, level);
+                if (clamped != level) {
+                    updater.accept(enchantment, clamped);
+                    modified = true;
+                }
+            }
+        }
+        return modified;
+    }
+
+    private static MerchantRecipe copyRecipeWithResult(MerchantRecipe recipe, ItemStack result) {
+        MerchantRecipe copy = new MerchantRecipe(
+                result,
+                recipe.getUses(),
+                recipe.getMaxUses(),
+                recipe.hasExperienceReward(),
+                recipe.getVillagerExperience(),
+                recipe.getPriceMultiplier(),
+                recipe.getDemand(),
+                recipe.getSpecialPrice(),
+                recipe.shouldIgnoreDiscounts()
+        );
+        if (recipe.getIngredients() != null) {
+            copy.setIngredients(recipe.getIngredients());
+        }
+        return copy;
+    }
+
+    /**
+     * Sanea la lista de recetas de un comerciante, purgando ofertas de Slimefun o exclusivamente
+     * no-vanilla y clampeando encantamientos vanilla ilegales sin alterar intercambios legítimos.
      *
-     * @return true si se removió al menos una receta no autorizada.
+     * @return true si se removió o saneó al menos una receta no autorizada.
      */
     public boolean sanitizeRecipes(Merchant trader) {
         if (trader == null) {
@@ -188,8 +319,19 @@ public final class ClasicoVillagerTradeGuardListener implements Listener {
         if (recipes == null || recipes.isEmpty()) {
             return false;
         }
-        List<MerchantRecipe> cleanRecipes = new ArrayList<>(recipes);
-        boolean modified = cleanRecipes.removeIf(this::isSlimefunTrade);
+        List<MerchantRecipe> cleanRecipes = new ArrayList<>(recipes.size());
+        boolean modified = false;
+        for (MerchantRecipe recipe : recipes) {
+            TradeSanitization outcome = inspectAndSanitize(recipe);
+            switch (outcome.action()) {
+                case KEEP -> cleanRecipes.add(recipe);
+                case REPLACE -> {
+                    cleanRecipes.add(outcome.sanitizedRecipe());
+                    modified = true;
+                }
+                case REMOVE -> modified = true;
+            }
+        }
         if (modified) {
             trader.setRecipes(cleanRecipes);
         }
@@ -197,21 +339,24 @@ public final class ClasicoVillagerTradeGuardListener implements Listener {
     }
 
     /**
-     * Evita que un aldeano en Clásico adquiera un nuevo trade de Slimefun.
+     * Evita que un aldeano en Clásico adquiera un nuevo trade de Slimefun o con encantamientos no-vanilla.
      */
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onVillagerAcquireTrade(VillagerAcquireTradeEvent event) {
         if (!isClasico(event.getEntity().getWorld())) {
             return;
         }
-        if (isSlimefunTrade(event.getRecipe())) {
+        TradeSanitization outcome = inspectAndSanitize(event.getRecipe());
+        if (outcome.action() == TradeAction.REMOVE) {
             event.setCancelled(true);
+        } else if (outcome.action() == TradeAction.REPLACE) {
+            event.setRecipe(outcome.sanitizedRecipe());
         }
     }
 
     /**
-     * Al interactuar con un aldeano o vendedor ambulante en Clásico, purga cualquier trade corrupto
-     * existente en su NBT antes de que se abra la ventana comercial.
+     * Al interactuar con un aldeano o vendedor ambulante en Clásico, purga o sanea cualquier trade
+     * corrupto existente en su NBT antes de que se abra la ventana comercial.
      */
     @EventHandler(priority = EventPriority.LOWEST)
     public void onPlayerInteractEntity(PlayerInteractEntityEvent event) {
@@ -219,8 +364,8 @@ public final class ClasicoVillagerTradeGuardListener implements Listener {
             return;
         }
         if (event.getRightClicked() instanceof AbstractVillager trader) {
-            if (sanitizeRecipes(trader)) {
-                plugin.getLogger().info("[ClasicoTradeGuard] Purga de trade Slimefun ejecutada en aldeano ("
+            if (sanitizeRecipes(trader) && plugin != null) {
+                plugin.getLogger().info("[ClasicoTradeGuard] Sanitización de trades ejecutada en aldeano ("
                         + trader.getLocation().getBlockX() + ", "
                         + trader.getLocation().getBlockY() + ", "
                         + trader.getLocation().getBlockZ() + ") en "
@@ -239,8 +384,8 @@ public final class ClasicoVillagerTradeGuardListener implements Listener {
         }
         if (event.getInventory() instanceof MerchantInventory merchantInventory) {
             Merchant merchant = merchantInventory.getMerchant();
-            if (merchant != null) {
-                sanitizeRecipes(merchant);
+            if (merchant != null && sanitizeRecipes(merchant) && plugin != null) {
+                plugin.getLogger().info("[ClasicoTradeGuard] Sanitización secundaria de trades ejecutada al abrir inventario.");
             }
         }
     }
@@ -250,7 +395,7 @@ public final class ClasicoVillagerTradeGuardListener implements Listener {
      */
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onEntitySpawn(EntitySpawnEvent event) {
-        if (!isClasico(event.getLocation().getWorld())) {
+        if (plugin == null || !plugin.isEnabled() || !isClasico(event.getLocation().getWorld())) {
             return;
         }
         if (event.getEntity() instanceof AbstractVillager trader) {
@@ -268,7 +413,7 @@ public final class ClasicoVillagerTradeGuardListener implements Listener {
      */
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onVillagerCareerChange(VillagerCareerChangeEvent event) {
-        if (!isClasico(event.getEntity().getWorld())) {
+        if (plugin == null || !plugin.isEnabled() || !isClasico(event.getEntity().getWorld())) {
             return;
         }
         Villager villager = event.getEntity();
