@@ -10,8 +10,8 @@
     <packaging>jar</packaging>
 
     <properties>
-        <maven.compiler.source>21</maven.compiler.source>
-        <maven.compiler.target>21</maven.compiler.target>
+        <maven.compiler.source>25</maven.compiler.source>
+        <maven.compiler.target>25</maven.compiler.target>
         <paper.version>1.21.11-R0.1-SNAPSHOT</paper.version>
         <mockbukkit.artifactId>mockbukkit-v1.21</mockbukkit.artifactId>
         <mockbukkit.version>4.116.3</mockbukkit.version>
@@ -155,8 +155,11 @@
                 <artifactId>maven-compiler-plugin</artifactId>
                 <version>3.15.0</version>
                 <configuration>
-                    <source>21</source>
-                    <target>21</target>
+                    <!-- Dallas T2 corre Java 25. java.lang.foreign es final desde 22: sin
+                         flag de preview (desplegar_via_panel rechaza bytecode preview, #189). -->
+                    <fork>true</fork>
+                    <source>25</source>
+                    <target>25</target>
                     <!-- El codigo de arenas vive en DrakesBosses. Se conserva aqui
                          durante la migracion como referencia, pero no se empaqueta. -->
                     <excludes>
@@ -171,8 +174,6 @@
                     </testExcludes>
                     <compilerArgs>
                         <arg>-parameters</arg>
-                        <!-- OdysseiaNativeLoader usa java.lang.foreign (preview en 21); sin esto no compila -->
-                        <arg>--enable-preview</arg>
                     </compilerArgs>
                     <annotationProcessorPaths>
                         <path>
@@ -187,9 +188,6 @@
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
                 <version>3.5.2</version>
-                <configuration>
-                    <argLine>--enable-preview</argLine>
-                </configuration>
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
