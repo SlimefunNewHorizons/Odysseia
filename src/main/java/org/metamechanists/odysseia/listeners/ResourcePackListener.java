@@ -6,6 +6,7 @@ import java.util.Locale;
 import java.util.UUID;
 
 import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -66,8 +67,8 @@ public final class ResourcePackListener implements Listener {
         String url = s.getString("url", "").trim();
         String sha1 = s.getString("sha1", "").trim().toLowerCase(Locale.ROOT);
         boolean required = s.getBoolean("required", false);
-        String prompt = s.getString("prompt",
-                "§bDrakesCraft §7ofrece texturas para los items de Slimefun. §aOpcional.");
+        String prompt = colorize(s.getString("prompt",
+                "§bDrakesCraft §7ofrece texturas para los items de Slimefun. §aOpcional."));
         if (url.isEmpty()) {
             return false;
         }
@@ -102,6 +103,11 @@ public final class ResourcePackListener implements Listener {
                             + " -> " + event.getStatus());
             default -> { }
         }
+    }
+
+    /** El cliente muestra el prompt tal cual: traduce los codigos & de config.yml. */
+    static String colorize(String text) {
+        return text == null ? null : ChatColor.translateAlternateColorCodes('&', text);
     }
 
     static byte[] decodeSha1(String hex) {
