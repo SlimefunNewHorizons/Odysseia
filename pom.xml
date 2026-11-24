@@ -10,8 +10,8 @@
     <packaging>jar</packaging>
 
     <properties>
-        <maven.compiler.source>25</maven.compiler.source>
-        <maven.compiler.target>25</maven.compiler.target>
+        <maven.compiler.source>21</maven.compiler.source>
+        <maven.compiler.target>21</maven.compiler.target>
         <paper.version>1.21.11-R0.1-SNAPSHOT</paper.version>
         <mockbukkit.artifactId>mockbukkit-v1.21</mockbukkit.artifactId>
         <mockbukkit.version>4.116.3</mockbukkit.version>
@@ -155,14 +155,18 @@
                 <artifactId>maven-compiler-plugin</artifactId>
                 <version>3.15.0</version>
                 <configuration>
-                    <!-- Dallas T2 corre Java 25. java.lang.foreign es final desde 22: sin
-                         flag de preview (desplegar_via_panel rechaza bytecode preview, #189). -->
-                    <fork>true</fork>
-                    <source>25</source>
-                    <target>25</target>
+                    <!-- Se compila con release 21: es lo que corre Dallas (Paper 1.21.11 / Java 21)
+                         y el bytecode 65 tambien carga en la JVM 25 del staging T2. El puente FFM
+                         (nativebridge) queda fuera del build porque java.lang.foreign solo es final
+                         desde 22: en 21 exige el flag de preview y ese bytecode (65.65535) lo
+                         rechaza desplegar_via_panel y no lo carga una JVM 25 (#189). La clase sigue en
+                         el arbol, sin uso, para cuando se cablee el motor Odysseia-Rust con JDK 25. -->
+                    <source>21</source>
+                    <target>21</target>
                     <!-- El codigo de arenas vive en DrakesBosses. Se conserva aqui
                          durante la migracion como referencia, pero no se empaqueta. -->
                     <excludes>
+                        <exclude>org/metamechanists/odysseia/nativebridge/**</exclude>
                         <exclude>org/metamechanists/odysseia/boss/**</exclude>
                         <exclude>org/metamechanists/odysseia/commands/BossCommand.java</exclude>
                         <exclude>org/metamechanists/odysseia/commands/BossWarpCommand.java</exclude>
